@@ -1,0 +1,1 @@
+Nginx connects to this for each auth. It will return 401 or 200 which will then allow the user to carry on
