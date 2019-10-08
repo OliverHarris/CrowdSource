@@ -22,14 +22,16 @@ func main() {
 }
 
 type product struct {
-	Name string `json:"product_name_it"`
+	ProductName string `bson:"product_name"`
+	ID          string
+	Brands      string
 }
 
 func getProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	barcode := params["barcode"]
 	// Set client options
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	clientOptions := options.Client().ApplyURI("mongodb://project:27017")
 
 	// Connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
@@ -47,9 +49,10 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Connected to MongoDB!")
 
-	collection := client.Database("test").Collection("Products")
+	collection := client.Database("test").Collection("products")
 	filter := bson.M{"_id": barcode}
 	doc := collection.FindOne(context.TODO(), filter)
+
 	var fin product
 	doc.Decode(&fin)
 	fmt.Printf("%v", fin)
