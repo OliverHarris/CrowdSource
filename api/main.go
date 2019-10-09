@@ -1,15 +1,9 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func main() {
@@ -19,43 +13,6 @@ func main() {
 
 	router.HandleFunc("/product/{barcode}", getProduct).Methods("GET")
 	http.ListenAndServe(":8000", router)
-}
-
-type product struct {
-	ProductName string `bson:"product_name"`
-	ID          string
-	Brands      string
-}
-
-func getProduct(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	barcode := params["barcode"]
-	// Set client options
-	clientOptions := options.Client().ApplyURI("mongodb://project:27017")
-
-	// Connect to MongoDB
-	client, err := mongo.Connect(context.TODO(), clientOptions)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Check the connection
-	err = client.Ping(context.TODO(), nil)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Connected to MongoDB!")
-
-	collection := client.Database("test").Collection("products")
-	filter := bson.M{"_id": barcode}
-	doc := collection.FindOne(context.TODO(), filter)
-
-	var fin product
-	doc.Decode(&fin)
-	fmt.Printf("%v", fin)
 }
 
 //To open the API to other sources (Browser ui) this will allow CORS
