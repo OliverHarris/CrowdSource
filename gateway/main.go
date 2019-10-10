@@ -87,6 +87,9 @@ func main() {
 	r.Handle("/api/private", negroni.New(
 		negroni.HandlerFunc(jwtMiddleware.HandlerWithNext),
 		negroni.Wrap(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeaderParts := strings.Split(r.Header.Get("Authorization"), " ")
+			token := authHeaderParts[1]
+			doStuff(token)
 			message := "Hello from a private endpoint! You need to be authenticated to see this."
 			responseJSON(message, w, http.StatusOK)
 		}))))
@@ -123,6 +126,13 @@ type CustomClaims struct {
 	jwt.StandardClaims
 }
 
+func doStuff(tokenString string) {
+	token, _ := jwt.ParseWithClaims(tokenString, &CustomClaims{}, nil)
+
+	claims, _ := token.Claims.(*CustomClaims)
+	fmt.Printf("Token stuff.. (user) %s ", claims.Subject)
+
+}
 func checkScope(scope string, tokenString string) bool {
 	token, _ := jwt.ParseWithClaims(tokenString, &CustomClaims{}, nil)
 
