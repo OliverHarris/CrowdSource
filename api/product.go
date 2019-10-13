@@ -22,7 +22,7 @@ type product struct {
 
 func productFromGod(barcode string) product {
 	// Set client options
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	clientOptions := options.Client().ApplyURI("mongodb://project:27017")
 
 	// Connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
@@ -43,10 +43,50 @@ func productFromGod(barcode string) product {
 	collection := client.Database("test").Collection("products")
 	filter := bson.M{"_id": barcode}
 	doc := collection.FindOne(context.TODO(), filter)
-
+	addPoint()
 	var finalProduct product
 	doc.Decode(&finalProduct)
 	return finalProduct
+}
+
+type user struct {
+	user   string
+	points int
+}
+
+func addPoint() {
+	// Set client options
+	clientOptions := options.Client().ApplyURI("mongodb://project:27017")
+
+	// Connect to MongoDB
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Check the connection
+	err = client.Ping(context.TODO(), nil)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	collection := client.Database("Olivers").Collection("Points")
+	filter := bson.D{{"user", "test"}}
+	update := bson.D{
+		{"$inc", bson.D{
+			{"age", 1},
+		}},
+		{"$set", bson.D{
+			{"user", "test"},
+		}},
+	}
+	updateResult, err := collection.UpdateOne(context.TODO(), filter, update, options.Update().SetUpsert(true))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("updated a single document: ", updateResult.MatchedCount)
 }
 
 func getProduct(w http.ResponseWriter, r *http.Request) {
