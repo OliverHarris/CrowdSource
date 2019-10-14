@@ -9,10 +9,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var conn mongo.Database
+var conn *mongo.Database
 
 func main() {
-	conn, err := configDB(context.Background())
+	var err error
+	conn, err = configDB(context.Background())
 	if err != nil {
 		log.Fatal("Connection failed. %s", err)
 	}

@@ -18,6 +18,7 @@ type product struct {
 	ID          string
 	Brands      string
 	Source      string
+	Error       string
 }
 
 func getProductInfo(barcode string) product {
@@ -28,7 +29,7 @@ func getProductInfo(barcode string) product {
 	var finalProduct product
 	err := doc.Decode(&finalProduct)
 	if err != nil {
-		log.Printf("Not found %s", err)
+		finalProduct.Error = "Product not found"
 	}
 	return finalProduct
 }
@@ -109,7 +110,7 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	barcode := params["barcode"]
 
-	product := productFromGod(barcode)
+	product := getProductInfo(barcode)
 	product.Source = "Open source database"
 	output, _ := json.Marshal(product)
 	w.Write(output)
