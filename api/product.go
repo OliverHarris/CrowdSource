@@ -45,7 +45,10 @@ func productFromGod(barcode string) product {
 	doc := collection.FindOne(context.TODO(), filter)
 	addPoint()
 	var finalProduct product
-	doc.Decode(&finalProduct)
+	err = doc.Decode(&finalProduct)
+	if err != nil {
+		log.Printf("Not found %s", err)
+	}
 	return finalProduct
 }
 
