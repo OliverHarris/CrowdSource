@@ -20,6 +20,19 @@ type product struct {
 	Source      string
 }
 
+func getProductInfo(barcode string) product {
+	collection := conn.Collection("products")
+	filter := bson.M{"_id": barcode}
+	doc := collection.FindOne(context.TODO(), filter)
+	addPoint()
+	var finalProduct product
+	err := doc.Decode(&finalProduct)
+	if err != nil {
+		log.Printf("Not found %s", err)
+	}
+	return finalProduct
+}
+
 func productFromGod(barcode string) product {
 	// Set client options
 	clientOptions := options.Client().ApplyURI("mongodb://project:27017")
