@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func configDB() (*mongo.Database, error) {
+func configDB(ctx context.Context) (*mongo.Database, error) {
 	uri := fmt.Sprintf("mongodb://project:27017")
 	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
 	if err != nil {

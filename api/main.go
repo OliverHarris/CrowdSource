@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -11,7 +12,7 @@ import (
 var conn mongo.Database
 
 func main() {
-	conn, err := configDB()
+	conn, err := configDB(context.Background())
 	if err != nil {
 		log.Fatal("Connection failed. %s", err)
 	}
