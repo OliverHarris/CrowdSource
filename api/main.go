@@ -1,12 +1,20 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
+var conn mongo.Database
+
 func main() {
+	conn, err := configDB()
+	if err != nil {
+		log.Fatal("Connection failed. %s", err)
+	}
 	router := mux.NewRouter()
 	//To allow other sources, enable cors
 	//router.Use(cors)
