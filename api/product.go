@@ -14,11 +14,65 @@ import (
 )
 
 type product struct {
-	ProductName string `bson:"product_name"`
-	ID          string
-	Brands      string
+	ProductName string   `bson:"product_name"`
+	Ingredients []string `bson:"ingredients"`
+	Serving     string
+	Nutrition   map[string]float32
+	Version     int
+	ID          string `bson:"_id"`
 	Source      string
+	Trust       map[string]points
+	ChangeBy    changed
+	Changed     string
 	Error       string
+}
+type changed struct {
+	Part string
+	User string
+}
+type points struct {
+	Confirm int
+	Deny    int
+}
+
+func getFromCrowd(barcode string) product {
+	collection := conn.Collection("products")
+	filter := bson.M{"_id": barcode}
+	doc := collection.FindOne(context.TODO(), filter)
+	var finalProduct product
+	err := doc.Decode(&finalProduct)
+	if err != nil {
+		finalProduct.Error = "Product not found"
+	}
+	return finalProduct
+}
+
+func addProductData(barcode string, product product, user string) {
+	currentProduct := getFromCrowd(barcode)
+	product.Trust = make(map[string]points)
+	product.ID = barcode
+	changed := false
+	if len(product.ProductName) != 0 {
+		if currentProduct.ProductName == product.ProductName {
+			p := points{currentProduct.Trust["ProductName"].Confirm + 1, currentProduct.Trust["ProductName"].Deny}
+			product.Trust["ProductName"] = p
+		} else {
+			changed = true
+			p := points{0, 0}
+			product.Trust["ProductName"] = p
+		}
+	}
+
+	//if changed, keep old copy.
+	if changed {
+
+	}
+
+	//update the database
+	collection := conn.Collection("products")
+	filter := bson.M{"_id": barcode}
+	collection.FindOneAndReplace(context.TODO(), filter, product, options.FindOneAndReplace().SetUpsert(true))
+
 }
 
 func getProductInfo(barcode string) product {
@@ -83,4 +137,17 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	output, _ := json.Marshal(product)
 	w.Write(output)
 
+}
+
+func updateProduct(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	params := mux.Vars(r)
+	barcode := params["barcode"]
+	var product product
+	err := decoder.Decode(&product)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Decoded.. %v", product.ProductName)
+	addProductData(barcode, product, "test")
 }

@@ -19,6 +19,6 @@ func configDB(ctx context.Context) (*mongo.Database, error) {
 	if err != nil {
 		return nil, fmt.Errorf("mongo client couldn't connect with background context: %v", err)
 	}
-	todoDB := client.Database("test")
+	todoDB := client.Database("pro")
 	return todoDB, nil
 }
