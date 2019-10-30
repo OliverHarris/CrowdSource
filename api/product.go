@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,15 +23,12 @@ type product struct {
 	ID          string `bson:"_id"`
 	Source      string
 	Trust       map[string]points
-	ChangeBy    changed
 	Changed     string
 	Error       string
-}
-type changed struct {
-	Part string
-	User string
+	Changes     []product
 }
 type points struct {
+	User    string
 	Confirm int
 	Deny    int
 }
@@ -52,20 +50,61 @@ func addProductData(barcode string, product product, user string) {
 	product.Trust = make(map[string]points)
 	product.ID = barcode
 	changed := false
+	p := points{user, 0, 0}
 	if len(product.ProductName) != 0 {
 		if currentProduct.ProductName == product.ProductName {
-			p := points{currentProduct.Trust["ProductName"].Confirm + 1, currentProduct.Trust["ProductName"].Deny}
+			p := points{currentProduct.Trust["ProductName"].User,
+				currentProduct.Trust["ProductName"].Confirm + 1,
+				currentProduct.Trust["ProductName"].Deny}
 			product.Trust["ProductName"] = p
 		} else {
 			changed = true
-			p := points{0, 0}
+
 			product.Trust["ProductName"] = p
+		}
+	}
+
+	if len(product.Ingredients) != 0 {
+		if testEq(product.Ingredients, currentProduct.Ingredients) {
+			p := points{currentProduct.Trust["ProductName"].User,
+				currentProduct.Trust["Ingredients"].Confirm + 1, currentProduct.Trust["Ingredients"].Deny}
+			product.Trust["Ingredients"] = p
+		} else {
+			changed = true
+
+			product.Trust["Ingredients"] = p
+		}
+	}
+
+	if len(product.Nutrition) != 0 {
+		if reflect.DeepEqual(product.Nutrition, currentProduct.Nutrition) {
+			p := points{currentProduct.Trust["ProductName"].User,
+				currentProduct.Trust["Nutrition"].Confirm + 1, currentProduct.Trust["Nutrition"].Deny}
+			product.Trust["Nutrition"] = p
+		} else {
+			changed = true
+
+			product.Trust["Nutrition"] = p
+		}
+	}
+
+	if len(product.Serving) != 0 {
+		if product.Serving == currentProduct.Serving {
+			p := points{currentProduct.Trust["ProductName"].User,
+				currentProduct.Trust["Serving"].Confirm + 1, currentProduct.Trust["Serving"].Deny}
+			product.Trust["Serving"] = p
+		} else {
+			changed = true
+
+			product.Trust["Serving"] = p
 		}
 	}
 
 	//if changed, keep old copy.
 	if changed {
-
+		product.Changes = append(currentProduct.Changes, currentProduct)
+	} else {
+		product.Changes = currentProduct.Changes
 	}
 
 	//update the database
@@ -150,4 +189,22 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Decoded.. %v", product.ProductName)
 	addProductData(barcode, product, "test")
+}
+
+func testEq(a, b []string) bool {
+	if (a == nil) != (b == nil) {
+		return false
+	}
+
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+
+	return true
 }
