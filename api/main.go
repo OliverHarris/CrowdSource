@@ -2,27 +2,35 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var conn *mongo.Database
 
 func main() {
-	var err error
+	//load the env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	//Create a database connection
 	conn, err = configDB(context.Background())
 	if err != nil {
-		log.Fatal("Connection failed. %s", err)
+		log.Fatal("Connection failed. %v", err)
 	}
 	router := mux.NewRouter()
 	//To allow other sources, enable cors
 	//router.Use(cors)
 
 	router.HandleFunc("/product/{barcode}", getProduct).Methods("GET")
-	http.ListenAndServe(":8000", router)
+	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
 }
 
 //To open the API to other sources (Browser ui) this will allow CORS
