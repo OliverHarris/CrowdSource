@@ -21,7 +21,6 @@ type product struct {
 	Nutrition   map[string]float32
 	Version     int
 	ID          string `bson:"_id"`
-	Source      string
 	Trust       map[string]points
 	Changed     string
 	Error       string
@@ -102,6 +101,7 @@ func addProductData(barcode string, product product, user string) {
 
 	//if changed, keep old copy.
 	if changed {
+		product.Version = currentProduct.Version + 1
 		product.Changes = append(currentProduct.Changes, currentProduct)
 	} else {
 		product.Changes = currentProduct.Changes
@@ -118,7 +118,6 @@ func getProductInfo(barcode string) product {
 	collection := conn.Collection("products")
 	filter := bson.M{"_id": barcode}
 	doc := collection.FindOne(context.TODO(), filter)
-	addPoint()
 	var finalProduct product
 	err := doc.Decode(&finalProduct)
 	if err != nil {
@@ -170,9 +169,7 @@ func addPoint() {
 func getProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	barcode := params["barcode"]
-
 	product := getProductInfo(barcode)
-	product.Source = "Open source database"
 	output, _ := json.Marshal(product)
 	w.Write(output)
 
