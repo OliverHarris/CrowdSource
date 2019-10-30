@@ -23,7 +23,7 @@ func main() {
 	//Create a database connection
 	conn, err = configDB(context.Background())
 	if err != nil {
-		log.Fatal("Connection failed. %v", err)
+		log.Fatal(err)
 	}
 	router := mux.NewRouter()
 	//To allow other sources, enable cors

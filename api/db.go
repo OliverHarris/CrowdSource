@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func configDB(ctx context.Context) (*mongo.Database, error) {
-	uri := fmt.Sprintf("mongodb://project:27017")
+	uri := fmt.Sprintf("mongodb://%s", os.Getenv("DBHOST"))
 	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't connect to mongo: %v", err)
