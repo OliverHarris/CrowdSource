@@ -114,7 +114,7 @@ func addProductData(barcode string, product product, user string) {
 
 }
 
-func getProductInfo(barcode string) product {
+func getProductInfo(barcode string, user string) product {
 	collection := conn.Collection("products")
 	filter := bson.M{"_id": barcode}
 	doc := collection.FindOne(context.TODO(), filter)
@@ -123,6 +123,7 @@ func getProductInfo(barcode string) product {
 	if err != nil {
 		finalProduct.Error = "Product not found"
 	}
+	addPoints(1, true, user)
 	return finalProduct
 }
 
@@ -131,6 +132,34 @@ type user struct {
 	points int
 }
 
+type histpoints struct {
+	Points    int
+	Confirmed bool
+}
+
+func addPoints(points int, confirmed bool, user string) {
+	collection := conn.Collection("user")
+	filter := bson.D{{"_id", user}}
+	p := histpoints{points, confirmed}
+	update := bson.D{
+		{"$inc", bson.D{
+			{"points", points},
+		}},
+		{"$set", bson.D{
+			{"_id", user},
+		}},
+		{"$push", bson.D{
+			{"pointsHistory", p},
+		}},
+	}
+	updateResult, err := collection.UpdateOne(context.TODO(), filter, update, options.Update().SetUpsert(true))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("updated a single document: ", updateResult.MatchedCount)
+
+}
 func addPoint() {
 	// Set client options
 	clientOptions := options.Client().ApplyURI("mongodb://project:27017")
@@ -169,7 +198,7 @@ func addPoint() {
 func getProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	barcode := params["barcode"]
-	product := getProductInfo(barcode)
+	product := getProductInfo(barcode, getUsername(r))
 	output, _ := json.Marshal(product)
 	w.Write(output)
 
