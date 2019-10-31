@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"time"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
@@ -135,12 +136,13 @@ type user struct {
 type histpoints struct {
 	Points    int
 	Confirmed bool
+	Timestamp int64
 }
 
 func addPoints(points int, confirmed bool, user string) {
 	collection := conn.Collection("user")
 	filter := bson.D{{"_id", user}}
-	p := histpoints{points, confirmed}
+	p := histpoints{points, confirmed, time.Now().Unix()}
 	update := bson.D{
 		{"$inc", bson.D{
 			{"points", points},
