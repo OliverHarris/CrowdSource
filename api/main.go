@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -48,4 +50,28 @@ func cors(h http.Handler) http.Handler {
 				return
 			}
 		})
+}
+
+type CustomClaims struct {
+	Scope string `json:"scope"`
+	jwt.StandardClaims
+}
+
+func getUsername(r *http.Request) string {
+	authHeaderParts := strings.Split(r.Header.Get("Authorization"), " ")
+	log.Printf("Length %v", len(authHeaderParts))
+	if len(authHeaderParts) < 2 {
+		log.Printf("Token not found. Giving test username")
+		return "test"
+	}
+	tokenString := authHeaderParts[1]
+	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, nil)
+	if err != nil {
+		log.Printf("Token not found. Giving test username (error) %e", err)
+		return "test"
+	}
+	claims, _ := token.Claims.(*CustomClaims)
+	fmt.Printf("(user) %s ", claims.Subject)
+	return claims.Subject
+
 }
