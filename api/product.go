@@ -124,7 +124,7 @@ func getProductInfo(barcode string, user string) product {
 	if err != nil {
 		finalProduct.Error = "Product not found"
 	}
-	addPoints(1, true, user)
+	addPoints(1, true, user, barcode)
 	return finalProduct
 }
 
@@ -134,15 +134,34 @@ type user struct {
 }
 
 type histpoints struct {
+	Item      string
+	Type      string
 	Points    int
 	Confirmed bool
 	Timestamp int64
 }
 
-func addPoints(points int, confirmed bool, user string) {
+func checkScanned(username string, barcode string) {
+	collection := conn.Collection("user")
+	filter := bson.D{{"_id", username},
+		{"pointsHistory.item", barcode}}
+	doc, err := collection.Find(context.TODO(), filter, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	f := doc.Next(context.TODO())
+	if !f {
+		return false
+	} else {
+		return true
+	}
+}
+
+func addPoints(points int, confirmed bool, user string, barcode string) {
+	checkScanned(user, barcode)
 	collection := conn.Collection("user")
 	filter := bson.D{{"_id", user}}
-	p := histpoints{points, confirmed, time.Now().Unix()}
+	p := histpoints{barcode, "SCAN", points, confirmed, time.Now().Unix()}
 	update := bson.D{
 		{"$inc", bson.D{
 			{"points", points},
