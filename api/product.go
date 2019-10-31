@@ -59,43 +59,43 @@ func addProductData(barcode string, product product, user string) {
 			product.Trust["ProductName"] = p
 		} else {
 			changed = true
-
+			addPoints(1, false, user, barcode, "PRODUCTNAMEUPDATE")
 			product.Trust["ProductName"] = p
 		}
 	}
 
 	if len(product.Ingredients) != 0 {
 		if testEq(product.Ingredients, currentProduct.Ingredients) {
-			p := points{currentProduct.Trust["ProductName"].User,
+			p := points{currentProduct.Trust["Ingredients"].User,
 				currentProduct.Trust["Ingredients"].Confirm + 1, currentProduct.Trust["Ingredients"].Deny}
 			product.Trust["Ingredients"] = p
 		} else {
 			changed = true
-
+			addPoints(1, false, user, barcode, "INGREDIENTSUPDATE")
 			product.Trust["Ingredients"] = p
 		}
 	}
 
 	if len(product.Nutrition) != 0 {
 		if reflect.DeepEqual(product.Nutrition, currentProduct.Nutrition) {
-			p := points{currentProduct.Trust["ProductName"].User,
+			p := points{currentProduct.Trust["Nutrition"].User,
 				currentProduct.Trust["Nutrition"].Confirm + 1, currentProduct.Trust["Nutrition"].Deny}
 			product.Trust["Nutrition"] = p
 		} else {
 			changed = true
-
+			addPoints(1, false, user, barcode, "NUTRITIONUPDATE")
 			product.Trust["Nutrition"] = p
 		}
 	}
 
 	if len(product.Serving) != 0 {
 		if product.Serving == currentProduct.Serving {
-			p := points{currentProduct.Trust["ProductName"].User,
+			p := points{currentProduct.Trust["Serving"].User,
 				currentProduct.Trust["Serving"].Confirm + 1, currentProduct.Trust["Serving"].Deny}
 			product.Trust["Serving"] = p
 		} else {
 			changed = true
-
+			addPoints(1, false, user, barcode, "SERVINGUPDATE")
 			product.Trust["Serving"] = p
 		}
 	}
@@ -125,7 +125,7 @@ func getProductInfo(barcode string, user string) product {
 		finalProduct.Error = "Product not found"
 	}
 	if !checkScanned(user, barcode) {
-		addPoints(1, true, user, barcode)
+		addPoints(1, true, user, barcode, "SCAN")
 	}
 	return finalProduct
 }
@@ -159,10 +159,10 @@ func checkScanned(username string, barcode string) bool {
 
 }
 
-func addPoints(points int, confirmed bool, user string, barcode string) {
+func addPoints(points int, confirmed bool, user string, barcode string, ptype string) {
 	collection := conn.Collection("user")
 	filter := bson.D{{"_id", user}}
-	p := histpoints{barcode, "SCAN", points, confirmed, time.Now().Unix()}
+	p := histpoints{barcode, ptype, points, confirmed, time.Now().Unix()}
 	update := bson.D{
 		{"$inc", bson.D{
 			{"points", points},
