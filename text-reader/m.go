@@ -9,7 +9,7 @@ import (
 func main() {
 	client := gosseract.NewClient()
 	defer client.Close()
-	client.SetImage("./test.jpg")
+	client.SetImage("./test2.jpg")
 	text, _ := client.Text()
 	fmt.Println(text)
 	// Hello, World!
