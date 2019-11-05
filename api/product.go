@@ -221,6 +221,10 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	barcode := params["barcode"]
 	product := getProductInfo(barcode, getUsername(r))
+	if product.Error != "" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	output, _ := json.Marshal(product)
 	w.Write(output)
 
