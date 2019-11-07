@@ -58,18 +58,34 @@ func getFromCrowd(barcode string) product {
 	return finalProduct
 }
 
-func clearString(st string) string {
+func clearString(st string) []string {
 	st = strings.ToLower(st)
-	minAscii := 65
-	maxAscii := 90
+	st = strings.ReplaceAll(st, "(", ",")
+	minAscii := 97
+	maxAscii := 122
 	var final bytes.Buffer
 	for _, value := range st {
 		ascii := int(value)
-		if ascii <= minAscii || ascii >= maxAscii || ascii == 44 {
+		if ascii >= minAscii && ascii <= maxAscii || ascii == 44 || ascii == 32 {
 			final.Write([]byte(string(ascii)))
+
 		}
 	}
-	return final.String()
+
+	newst := strings.Split(final.String(), ",")
+	var finalSet []string
+	index := make(map[string]string)
+	for _, val := range newst {
+		val = strings.TrimSpace(val)
+		if val != "" {
+			if _, ok := index[val]; !ok {
+				index[val] = ""
+				finalSet = append(finalSet, val)
+			}
+		}
+	}
+
+	return finalSet
 }
 
 func updateTheProduct(p productImg, barcode string) {
@@ -85,10 +101,10 @@ func updateTheProduct(p productImg, barcode string) {
 
 	text, _ := client.Text()
 	log.Printf("New text %s", text)
-	text = clearString(text)
-	log.Printf("New text %s", text)
+	text2 := clearString(text)
+	log.Printf("New text %s", text2)
 	//split the string; should do this in a function to remove repeated etc and %
-	currentProduct.Ingredients = strings.Split(text, ",")
+	currentProduct.Ingredients = text2
 
 	//update the database
 	collection := conn.Collection("products")
