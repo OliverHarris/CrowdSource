@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	b64 "encoding/base64"
 	"encoding/json"
@@ -56,6 +57,21 @@ func getFromCrowd(barcode string) product {
 	}
 	return finalProduct
 }
+
+func clearString(st string) string {
+	st = strings.ToLower(st)
+	minAscii := 65
+	maxAscii := 90
+	var final bytes.Buffer
+	for _, value := range st {
+		ascii := int(value)
+		if ascii <= minAscii || ascii >= maxAscii || ascii == 44 {
+			final.Write([]byte(string(ascii)))
+		}
+	}
+	return final.String()
+}
+
 func updateTheProduct(p productImg, barcode string) {
 	currentProduct := getFromCrowd(barcode)
 
@@ -69,8 +85,10 @@ func updateTheProduct(p productImg, barcode string) {
 
 	text, _ := client.Text()
 	log.Printf("New text %s", text)
+	text = clearString(text)
+	log.Printf("New text %s", text)
 	//split the string; should do this in a function to remove repeated etc and %
-	currentProduct.Ingredients = strings.Split(text, " ")
+	currentProduct.Ingredients = strings.Split(text, ",")
 
 	//update the database
 	collection := conn.Collection("products")
