@@ -241,6 +241,14 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Decoded.. %v", product.ProductName)
 	addProductData(barcode, product, "test")
+	product = getProductInfo(barcode, getUsername(r))
+	if product.Error != "" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	output, _ := json.Marshal(product)
+	w.Write(output)
+
 }
 
 func testEq(a, b []string) bool {
