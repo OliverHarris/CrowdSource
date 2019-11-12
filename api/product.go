@@ -53,10 +53,18 @@ func addProductData(barcode string, product product, user string) {
 	p := points{user, 0, 0}
 	if len(product.ProductName) != 0 {
 		if currentProduct.ProductName == product.ProductName {
-			p := points{currentProduct.Trust["ProductName"].User,
-				currentProduct.Trust["ProductName"].Confirm + 1,
-				currentProduct.Trust["ProductName"].Deny}
-			product.Trust["ProductName"] = p
+			if canVote(barcode, user, "ProductNameVote", currentProduct.Version) {
+				p := points{currentProduct.Trust["ProductName"].User,
+					currentProduct.Trust["ProductName"].Confirm + 1,
+					currentProduct.Trust["ProductName"].Deny}
+				product.Trust["ProductName"] = p
+			} else {
+				p := points{currentProduct.Trust["ProductName"].User,
+					currentProduct.Trust["ProductName"].Confirm,
+					currentProduct.Trust["ProductName"].Deny}
+				product.Trust["ProductName"] = p
+			}
+
 		} else {
 			changed = true
 			addPoints(1, false, user, barcode, "PRODUCTNAMEUPDATE")
@@ -66,9 +74,16 @@ func addProductData(barcode string, product product, user string) {
 
 	if len(product.Ingredients) != 0 {
 		if testEq(product.Ingredients, currentProduct.Ingredients) {
-			p := points{currentProduct.Trust["Ingredients"].User,
-				currentProduct.Trust["Ingredients"].Confirm + 1, currentProduct.Trust["Ingredients"].Deny}
-			product.Trust["Ingredients"] = p
+			if canVote(barcode, user, "IngredientsVote", currentProduct.Version) {
+				p := points{currentProduct.Trust["Ingredients"].User,
+					currentProduct.Trust["Ingredients"].Confirm + 1, currentProduct.Trust["Ingredients"].Deny}
+				product.Trust["Ingredients"] = p
+			} else {
+				p := points{currentProduct.Trust["Ingredients"].User,
+					currentProduct.Trust["Ingredients"].Confirm, currentProduct.Trust["Ingredients"].Deny}
+				product.Trust["Ingredients"] = p
+			}
+
 		} else {
 			changed = true
 			addPoints(1, false, user, barcode, "INGREDIENTSUPDATE")
@@ -78,9 +93,17 @@ func addProductData(barcode string, product product, user string) {
 
 	if len(product.Nutrition) != 0 {
 		if reflect.DeepEqual(product.Nutrition, currentProduct.Nutrition) {
-			p := points{currentProduct.Trust["Nutrition"].User,
-				currentProduct.Trust["Nutrition"].Confirm + 1, currentProduct.Trust["Nutrition"].Deny}
-			product.Trust["Nutrition"] = p
+
+			if canVote(barcode, user, "ProductNameVote", currentProduct.Version) {
+				p := points{currentProduct.Trust["Nutrition"].User,
+					currentProduct.Trust["Nutrition"].Confirm + 1, currentProduct.Trust["Nutrition"].Deny}
+				product.Trust["Nutrition"] = p
+			} else {
+				p := points{currentProduct.Trust["Nutrition"].User,
+					currentProduct.Trust["Nutrition"].Confirm, currentProduct.Trust["Nutrition"].Deny}
+				product.Trust["Nutrition"] = p
+			}
+
 		} else {
 			changed = true
 			addPoints(1, false, user, barcode, "NUTRITIONUPDATE")
@@ -90,9 +113,16 @@ func addProductData(barcode string, product product, user string) {
 
 	if len(product.Serving) != 0 {
 		if product.Serving == currentProduct.Serving {
-			p := points{currentProduct.Trust["Serving"].User,
-				currentProduct.Trust["Serving"].Confirm + 1, currentProduct.Trust["Serving"].Deny}
-			product.Trust["Serving"] = p
+			if canVote(barcode, user, "ProductNameVote", currentProduct.Version) {
+				p := points{currentProduct.Trust["Serving"].User,
+					currentProduct.Trust["Serving"].Confirm + 1, currentProduct.Trust["Serving"].Deny}
+				product.Trust["Serving"] = p
+			} else {
+				p := points{currentProduct.Trust["Serving"].User,
+					currentProduct.Trust["Serving"].Confirm, currentProduct.Trust["Serving"].Deny}
+				product.Trust["Serving"] = p
+			}
+
 		} else {
 			changed = true
 			addPoints(1, false, user, barcode, "SERVINGUPDATE")
@@ -127,8 +157,10 @@ func canVote(barcode string, username string, part string, version int) bool {
 	}
 	f := doc.Next(context.TODO())
 	if !f {
+		log.Print("Cant vote")
 		return false
 	}
+	log.Print("Can vote")
 	return true
 }
 
