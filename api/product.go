@@ -11,7 +11,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -54,8 +53,8 @@ func addProductData(barcode string, productIn product, user string) {
 	p := points{user, 0, 0, 0}
 	if len(productIn.ProductName) != 0 {
 		if currentProduct.ProductName == productIn.ProductName {
-			if canVote(barcode, user, "ProductNameUpVote", currentProduct.Trust["ProductName"].Version) &&
-				canVote(barcode, user, "ProductNameDownVote", currentProduct.Trust["ProductName"].Version) {
+			if canVote(barcode, user, "ProductNameVote+", currentProduct.Trust["ProductName"].Version) &&
+				canVote(barcode, user, "ProductNameVote-", currentProduct.Trust["ProductName"].Version) {
 				p := points{currentProduct.Trust["ProductName"].User,
 					currentProduct.Trust["ProductName"].Confirm + 1,
 					currentProduct.Trust["ProductName"].Deny,
@@ -76,8 +75,8 @@ func addProductData(barcode string, productIn product, user string) {
 
 	if len(productIn.Ingredients) != 0 {
 		if testEq(productIn.Ingredients, currentProduct.Ingredients) {
-			if canVote(barcode, user, "IngredientsUpVote", currentProduct.Trust["Ingredients"].Version) &&
-				canVote(barcode, user, "IngredientsDownVote", currentProduct.Trust["Ingredients"].Version) {
+			if canVote(barcode, user, "IngredientsVote+", currentProduct.Trust["Ingredients"].Version) &&
+				canVote(barcode, user, "IngredientsVote-", currentProduct.Trust["Ingredients"].Version) {
 				p := points{currentProduct.Trust["Ingredients"].User,
 					currentProduct.Trust["Ingredients"].Confirm + 1, currentProduct.Trust["Ingredients"].Deny,
 					currentProduct.Trust["Ingredients"].Version}
@@ -98,8 +97,8 @@ func addProductData(barcode string, productIn product, user string) {
 	if len(productIn.Nutrition) != 0 {
 		if reflect.DeepEqual(productIn.Nutrition, currentProduct.Nutrition) {
 
-			if canVote(barcode, user, "NutritionUpVote", currentProduct.Trust["Nutrition"].Version) &&
-				canVote(barcode, user, "NutritionDownVote", currentProduct.Trust["Nutrition"].Version) {
+			if canVote(barcode, user, "NutritionVote+", currentProduct.Trust["Nutrition"].Version) &&
+				canVote(barcode, user, "NutritionVote-", currentProduct.Trust["Nutrition"].Version) {
 				p := points{currentProduct.Trust["Nutrition"].User,
 					currentProduct.Trust["Nutrition"].Confirm + 1, currentProduct.Trust["Nutrition"].Deny,
 					currentProduct.Trust["Nutrition"].Version}
@@ -119,8 +118,8 @@ func addProductData(barcode string, productIn product, user string) {
 
 	if len(productIn.Serving) != 0 {
 		if productIn.Serving == currentProduct.Serving {
-			if canVote(barcode, user, "ServingUpVote", currentProduct.Trust["Serving"].Version) &&
-				canVote(barcode, user, "ServingDownVote", currentProduct.Trust["Serving"].Version) {
+			if canVote(barcode, user, "ServingVote+", currentProduct.Trust["Serving"].Version) &&
+				canVote(barcode, user, "ServingVote-", currentProduct.Trust["Serving"].Version) {
 				p := points{currentProduct.Trust["Serving"].User,
 					currentProduct.Trust["Serving"].Confirm + 1, currentProduct.Trust["Serving"].Deny,
 					currentProduct.Trust["Serving"].Version}
@@ -160,7 +159,24 @@ func addProductData(barcode string, productIn product, user string) {
 }
 
 func upVote(barcode string, username string, part string) {
+	p := getProductInfo(barcode)
 
+	if canVote(barcode, username, (part + "+"), p.Trust[part].Version) {
+		//Upvote
+		collection := conn.Collection("products")
+		filter := bson.D{{"_id", "000343"}}
+		update := bson.D{
+			{"$inc", bson.D{
+				{"trust.ProductName.deny", 1},
+			}}}
+
+		updateResult, err := collection.UpdateOne(context.TODO(), filter, update)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("updated a single document: ", updateResult.MatchedCount)
+	}
 }
 
 func canVote(barcode string, username string, part string, version int) bool {
@@ -182,7 +198,7 @@ func canVote(barcode string, username string, part string, version int) bool {
 	return false
 }
 
-func getProductInfo(barcode string, user string) product {
+func getProductInfo(barcode string) product {
 	collection := conn.Collection("products")
 	filter := bson.M{"_id": barcode}
 	doc := collection.FindOne(context.TODO(), filter)
@@ -191,9 +207,7 @@ func getProductInfo(barcode string, user string) product {
 	if err != nil {
 		finalProduct.Error = "Product not found"
 	}
-	if !checkScanned(user, barcode) {
-		addPoints(1, true, user, barcode, "SCAN", 0)
-	}
+
 	return finalProduct
 }
 
@@ -250,48 +264,17 @@ func addPoints(points int, confirmed bool, user string, barcode string, ptype st
 	fmt.Println("updated a single document: ", updateResult.MatchedCount)
 
 }
-func addPoint() {
-	// Set client options
-	clientOptions := options.Client().ApplyURI("mongodb://project:27017")
-
-	// Connect to MongoDB
-	client, err := mongo.Connect(context.TODO(), clientOptions)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Check the connection
-	err = client.Ping(context.TODO(), nil)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	collection := client.Database("Olivers").Collection("Points")
-	filter := bson.D{{"user", "test"}}
-	update := bson.D{
-		{"$inc", bson.D{
-			{"age", 1},
-		}},
-		{"$set", bson.D{
-			{"user", "test"},
-		}},
-	}
-	updateResult, err := collection.UpdateOne(context.TODO(), filter, update, options.Update().SetUpsert(true))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("updated a single document: ", updateResult.MatchedCount)
-}
 
 func getProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	barcode := params["barcode"]
-	product := getProductInfo(barcode, getUsername(r))
+	product := getProductInfo(barcode)
 	if product.Error != "" {
 		w.WriteHeader(http.StatusNotFound)
 		return
+	}
+	if !checkScanned(getUsername(r), barcode) {
+		addPoints(1, true, getUsername(r), barcode, "SCAN", 0)
 	}
 	output, _ := json.Marshal(product)
 	w.Write(output)
@@ -309,7 +292,7 @@ func updateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Decoded.. %v", product.ProductName)
 	addProductData(barcode, product, "test")
-	product = getProductInfo(barcode, getUsername(r))
+	product = getProductInfo(barcode)
 	if product.Error != "" {
 		w.WriteHeader(http.StatusNotFound)
 		return
