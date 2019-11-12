@@ -115,6 +115,23 @@ func addProductData(barcode string, product product, user string) {
 
 }
 
+func canVote(barcode string, username string, part string, version int) bool {
+	collection := conn.Collection("user")
+	filter := bson.D{{"_id", username},
+		{"pointsHistory.item", barcode},
+		{"pointsHistory.type", part},
+		{"pointsHistory.version", version}}
+	doc, err := collection.Find(context.TODO(), filter, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	f := doc.Next(context.TODO())
+	if !f {
+		return false
+	}
+	return true
+}
+
 func getProductInfo(barcode string, user string) product {
 	collection := conn.Collection("products")
 	filter := bson.M{"_id": barcode}
@@ -137,6 +154,7 @@ type user struct {
 
 type histpoints struct {
 	Item      string
+	Version   int
 	Type      string
 	Points    int
 	Confirmed bool
@@ -162,7 +180,7 @@ func checkScanned(username string, barcode string) bool {
 func addPoints(points int, confirmed bool, user string, barcode string, ptype string) {
 	collection := conn.Collection("user")
 	filter := bson.D{{"_id", user}}
-	p := histpoints{barcode, ptype, points, confirmed, time.Now().Unix()}
+	p := histpoints{barcode, 0, ptype, points, confirmed, time.Now().Unix()}
 	update := bson.D{
 		{"$inc", bson.D{
 			{"points", points},
