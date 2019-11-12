@@ -54,13 +54,14 @@ func addProductData(barcode string, productIn product, user string) {
 	p := points{user, 0, 0, 0}
 	if len(productIn.ProductName) != 0 {
 		if currentProduct.ProductName == productIn.ProductName {
-			if canVote(barcode, user, "ProductNameVote", currentProduct.Trust["ProductName"].Version) {
+			if canVote(barcode, user, "ProductNameUpVote", currentProduct.Trust["ProductName"].Version) &&
+				canVote(barcode, user, "ProductNameDownVote", currentProduct.Trust["ProductName"].Version) {
 				p := points{currentProduct.Trust["ProductName"].User,
 					currentProduct.Trust["ProductName"].Confirm + 1,
 					currentProduct.Trust["ProductName"].Deny,
 					currentProduct.Trust["ProductName"].Version}
 				productIn.Trust["ProductName"] = p
-				addPoints(1, false, user, barcode, "ProductNameVote", currentProduct.Trust["ProductName"].Version)
+				addPoints(1, false, user, barcode, "ProductNameUpVote", currentProduct.Trust["ProductName"].Version)
 			} else {
 				productIn.Trust["ProductName"] = currentProduct.Trust["ProductName"]
 			}
@@ -75,12 +76,13 @@ func addProductData(barcode string, productIn product, user string) {
 
 	if len(productIn.Ingredients) != 0 {
 		if testEq(productIn.Ingredients, currentProduct.Ingredients) {
-			if canVote(barcode, user, "IngredientsVote", currentProduct.Trust["Ingredients"].Version) {
+			if canVote(barcode, user, "IngredientsUpVote", currentProduct.Trust["Ingredients"].Version) &&
+				canVote(barcode, user, "IngredientsDownVote", currentProduct.Trust["Ingredients"].Version) {
 				p := points{currentProduct.Trust["Ingredients"].User,
 					currentProduct.Trust["Ingredients"].Confirm + 1, currentProduct.Trust["Ingredients"].Deny,
 					currentProduct.Trust["Ingredients"].Version}
 				productIn.Trust["Ingredients"] = p
-				addPoints(1, false, user, barcode, "ingredientsVote", currentProduct.Trust["Ingredients"].Version)
+				addPoints(1, false, user, barcode, "ingredientsUpVote", currentProduct.Trust["Ingredients"].Version)
 			} else {
 				productIn.Trust["Ingredients"] = currentProduct.Trust["Ingredients"]
 			}
@@ -96,12 +98,13 @@ func addProductData(barcode string, productIn product, user string) {
 	if len(productIn.Nutrition) != 0 {
 		if reflect.DeepEqual(productIn.Nutrition, currentProduct.Nutrition) {
 
-			if canVote(barcode, user, "NutritionVote", currentProduct.Trust["Nutrition"].Version) {
+			if canVote(barcode, user, "NutritionUpVote", currentProduct.Trust["Nutrition"].Version) &&
+				canVote(barcode, user, "NutritionDownVote", currentProduct.Trust["Nutrition"].Version) {
 				p := points{currentProduct.Trust["Nutrition"].User,
 					currentProduct.Trust["Nutrition"].Confirm + 1, currentProduct.Trust["Nutrition"].Deny,
 					currentProduct.Trust["Nutrition"].Version}
 				productIn.Trust["Nutrition"] = p
-				addPoints(1, false, user, barcode, "NutritionVote", currentProduct.Trust["Nutrition"].Version)
+				addPoints(1, false, user, barcode, "NutritionUpVote", currentProduct.Trust["Nutrition"].Version)
 			} else {
 				productIn.Trust["Nutrition"] = currentProduct.Trust["Nutrition"]
 			}
@@ -116,12 +119,13 @@ func addProductData(barcode string, productIn product, user string) {
 
 	if len(productIn.Serving) != 0 {
 		if productIn.Serving == currentProduct.Serving {
-			if canVote(barcode, user, "ServingVote", currentProduct.Trust["Serving"].Version) {
+			if canVote(barcode, user, "ServingUpVote", currentProduct.Trust["Serving"].Version) &&
+				canVote(barcode, user, "ServingDownVote", currentProduct.Trust["Serving"].Version) {
 				p := points{currentProduct.Trust["Serving"].User,
 					currentProduct.Trust["Serving"].Confirm + 1, currentProduct.Trust["Serving"].Deny,
 					currentProduct.Trust["Serving"].Version}
 				productIn.Trust["Serving"] = p
-				addPoints(1, false, user, barcode, "ServingVote", currentProduct.Trust["Serving"].Version)
+				addPoints(1, false, user, barcode, "ServingUpVote", currentProduct.Trust["Serving"].Version)
 			} else {
 				productIn.Trust["Serving"] = currentProduct.Trust["Serving"]
 			}
@@ -152,6 +156,10 @@ func addProductData(barcode string, productIn product, user string) {
 	collection := conn.Collection("products")
 	filter := bson.M{"_id": barcode}
 	collection.FindOneAndReplace(context.TODO(), filter, productIn, options.FindOneAndReplace().SetUpsert(true))
+
+}
+
+func upVote(barcode string, username string, part string) {
 
 }
 
