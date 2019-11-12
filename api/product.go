@@ -58,6 +58,7 @@ func addProductData(barcode string, product product, user string) {
 					currentProduct.Trust["ProductName"].Confirm + 1,
 					currentProduct.Trust["ProductName"].Deny}
 				product.Trust["ProductName"] = p
+				addPoints(currentProduct.Version, false, user, barcode, "ProductNameVote")
 			} else {
 				p := points{currentProduct.Trust["ProductName"].User,
 					currentProduct.Trust["ProductName"].Confirm,
@@ -78,6 +79,7 @@ func addProductData(barcode string, product product, user string) {
 				p := points{currentProduct.Trust["Ingredients"].User,
 					currentProduct.Trust["Ingredients"].Confirm + 1, currentProduct.Trust["Ingredients"].Deny}
 				product.Trust["Ingredients"] = p
+				addPoints(currentProduct.Version, false, user, barcode, "ingredientsVote")
 			} else {
 				p := points{currentProduct.Trust["Ingredients"].User,
 					currentProduct.Trust["Ingredients"].Confirm, currentProduct.Trust["Ingredients"].Deny}
@@ -94,10 +96,11 @@ func addProductData(barcode string, product product, user string) {
 	if len(product.Nutrition) != 0 {
 		if reflect.DeepEqual(product.Nutrition, currentProduct.Nutrition) {
 
-			if canVote(barcode, user, "ProductNameVote", currentProduct.Version) {
+			if canVote(barcode, user, "NutritionVote", currentProduct.Version) {
 				p := points{currentProduct.Trust["Nutrition"].User,
 					currentProduct.Trust["Nutrition"].Confirm + 1, currentProduct.Trust["Nutrition"].Deny}
 				product.Trust["Nutrition"] = p
+				addPoints(currentProduct.Version, false, user, barcode, "NutritionVote")
 			} else {
 				p := points{currentProduct.Trust["Nutrition"].User,
 					currentProduct.Trust["Nutrition"].Confirm, currentProduct.Trust["Nutrition"].Deny}
@@ -113,10 +116,11 @@ func addProductData(barcode string, product product, user string) {
 
 	if len(product.Serving) != 0 {
 		if product.Serving == currentProduct.Serving {
-			if canVote(barcode, user, "ProductNameVote", currentProduct.Version) {
+			if canVote(barcode, user, "ServingVote", currentProduct.Version) {
 				p := points{currentProduct.Trust["Serving"].User,
 					currentProduct.Trust["Serving"].Confirm + 1, currentProduct.Trust["Serving"].Deny}
 				product.Trust["Serving"] = p
+				addPoints(currentProduct.Version, false, user, barcode, "ServingVote")
 			} else {
 				p := points{currentProduct.Trust["Serving"].User,
 					currentProduct.Trust["Serving"].Confirm, currentProduct.Trust["Serving"].Deny}
