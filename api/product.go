@@ -31,6 +31,7 @@ type points struct {
 	User    string
 	Confirm int
 	Deny    int
+	Version int
 }
 
 func getFromCrowd(barcode string) product {
@@ -45,107 +46,108 @@ func getFromCrowd(barcode string) product {
 	return finalProduct
 }
 
-func addProductData(barcode string, product product, user string) {
+func addProductData(barcode string, productIn product, user string) {
 	currentProduct := getFromCrowd(barcode)
-	product.Trust = make(map[string]points)
-	product.ID = barcode
+	productIn.Trust = make(map[string]points)
+	productIn.ID = barcode
 	changed := false
-	p := points{user, 0, 0}
-	if len(product.ProductName) != 0 {
-		if currentProduct.ProductName == product.ProductName {
-			if canVote(barcode, user, "ProductNameVote", currentProduct.Version) {
+	p := points{user, 0, 0, 0}
+	if len(productIn.ProductName) != 0 {
+		if currentProduct.ProductName == productIn.ProductName {
+			if canVote(barcode, user, "ProductNameVote", currentProduct.Trust["ProductName"].Version) {
 				p := points{currentProduct.Trust["ProductName"].User,
 					currentProduct.Trust["ProductName"].Confirm + 1,
-					currentProduct.Trust["ProductName"].Deny}
-				product.Trust["ProductName"] = p
-				addPoints(currentProduct.Version, false, user, barcode, "ProductNameVote")
+					currentProduct.Trust["ProductName"].Deny,
+					currentProduct.Trust["ProductName"].Version}
+				productIn.Trust["ProductName"] = p
+				addPoints(1, false, user, barcode, "ProductNameVote", currentProduct.Trust["ProductName"].Version)
 			} else {
-				p := points{currentProduct.Trust["ProductName"].User,
-					currentProduct.Trust["ProductName"].Confirm,
-					currentProduct.Trust["ProductName"].Deny}
-				product.Trust["ProductName"] = p
+				productIn.Trust["ProductName"] = currentProduct.Trust["ProductName"]
 			}
 
 		} else {
 			changed = true
-			addPoints(1, false, user, barcode, "PRODUCTNAMEUPDATE")
-			product.Trust["ProductName"] = p
+			addPoints(1, false, user, barcode, "PRODUCTNAMEUPDATE", 0)
+			p.Version = currentProduct.Trust["ProductName"].Version + 1
+			productIn.Trust["ProductName"] = p
 		}
 	}
 
-	if len(product.Ingredients) != 0 {
-		if testEq(product.Ingredients, currentProduct.Ingredients) {
-			if canVote(barcode, user, "IngredientsVote", currentProduct.Version) {
+	if len(productIn.Ingredients) != 0 {
+		if testEq(productIn.Ingredients, currentProduct.Ingredients) {
+			if canVote(barcode, user, "IngredientsVote", currentProduct.Trust["Ingredients"].Version) {
 				p := points{currentProduct.Trust["Ingredients"].User,
-					currentProduct.Trust["Ingredients"].Confirm + 1, currentProduct.Trust["Ingredients"].Deny}
-				product.Trust["Ingredients"] = p
-				addPoints(currentProduct.Version, false, user, barcode, "ingredientsVote")
+					currentProduct.Trust["Ingredients"].Confirm + 1, currentProduct.Trust["Ingredients"].Deny,
+					currentProduct.Trust["Ingredients"].Version}
+				productIn.Trust["Ingredients"] = p
+				addPoints(1, false, user, barcode, "ingredientsVote", currentProduct.Trust["Ingredients"].Version)
 			} else {
-				p := points{currentProduct.Trust["Ingredients"].User,
-					currentProduct.Trust["Ingredients"].Confirm, currentProduct.Trust["Ingredients"].Deny}
-				product.Trust["Ingredients"] = p
+				productIn.Trust["Ingredients"] = currentProduct.Trust["Ingredients"]
 			}
 
 		} else {
 			changed = true
-			addPoints(1, false, user, barcode, "INGREDIENTSUPDATE")
-			product.Trust["Ingredients"] = p
+			addPoints(1, false, user, barcode, "INGREDIENTSUPDATE", 0)
+			p.Version = currentProduct.Trust["Ingredients"].Version + 1
+			productIn.Trust["Ingredients"] = p
 		}
 	}
 
-	if len(product.Nutrition) != 0 {
-		if reflect.DeepEqual(product.Nutrition, currentProduct.Nutrition) {
+	if len(productIn.Nutrition) != 0 {
+		if reflect.DeepEqual(productIn.Nutrition, currentProduct.Nutrition) {
 
-			if canVote(barcode, user, "NutritionVote", currentProduct.Version) {
+			if canVote(barcode, user, "NutritionVote", currentProduct.Trust["Nutrition"].Version) {
 				p := points{currentProduct.Trust["Nutrition"].User,
-					currentProduct.Trust["Nutrition"].Confirm + 1, currentProduct.Trust["Nutrition"].Deny}
-				product.Trust["Nutrition"] = p
-				addPoints(currentProduct.Version, false, user, barcode, "NutritionVote")
+					currentProduct.Trust["Nutrition"].Confirm + 1, currentProduct.Trust["Nutrition"].Deny,
+					currentProduct.Trust["Nutrition"].Version}
+				productIn.Trust["Nutrition"] = p
+				addPoints(1, false, user, barcode, "NutritionVote", currentProduct.Trust["Nutrition"].Version)
 			} else {
-				p := points{currentProduct.Trust["Nutrition"].User,
-					currentProduct.Trust["Nutrition"].Confirm, currentProduct.Trust["Nutrition"].Deny}
-				product.Trust["Nutrition"] = p
+				productIn.Trust["Nutrition"] = currentProduct.Trust["Nutrition"]
 			}
 
 		} else {
 			changed = true
-			addPoints(1, false, user, barcode, "NUTRITIONUPDATE")
-			product.Trust["Nutrition"] = p
+			addPoints(1, false, user, barcode, "NUTRITIONUPDATE", 0)
+			p.Version = currentProduct.Trust["Nutrition"].Version + 1
+			productIn.Trust["Nutrition"] = p
 		}
 	}
 
-	if len(product.Serving) != 0 {
-		if product.Serving == currentProduct.Serving {
-			if canVote(barcode, user, "ServingVote", currentProduct.Version) {
+	if len(productIn.Serving) != 0 {
+		if productIn.Serving == currentProduct.Serving {
+			if canVote(barcode, user, "ServingVote", currentProduct.Trust["Serving"].Version) {
 				p := points{currentProduct.Trust["Serving"].User,
-					currentProduct.Trust["Serving"].Confirm + 1, currentProduct.Trust["Serving"].Deny}
-				product.Trust["Serving"] = p
-				addPoints(currentProduct.Version, false, user, barcode, "ServingVote")
+					currentProduct.Trust["Serving"].Confirm + 1, currentProduct.Trust["Serving"].Deny,
+					currentProduct.Trust["Serving"].Version}
+				productIn.Trust["Serving"] = p
+				addPoints(1, false, user, barcode, "ServingVote", currentProduct.Trust["Serving"].Version)
 			} else {
-				p := points{currentProduct.Trust["Serving"].User,
-					currentProduct.Trust["Serving"].Confirm, currentProduct.Trust["Serving"].Deny}
-				product.Trust["Serving"] = p
+				productIn.Trust["Serving"] = currentProduct.Trust["Serving"]
 			}
 
 		} else {
 			changed = true
-			addPoints(1, false, user, barcode, "SERVINGUPDATE")
-			product.Trust["Serving"] = p
+			addPoints(1, false, user, barcode, "SERVINGUPDATE", 0)
+			p.Version = currentProduct.Trust["Serving"].Version + 1
+			productIn.Trust["Serving"] = p
 		}
 	}
 
 	//if changed, keep old copy.
 	if changed {
-		product.Version = currentProduct.Version + 1
-		product.Changes = append(currentProduct.Changes, currentProduct)
+		productIn.Version = currentProduct.Version + 1
+		p2 := make([]product, 1)
+		currentProduct.Changes = p2
+		productIn.Changes = currentProduct.Changes //append(currentProduct.Changes, currentProduct)
 	} else {
-		product.Changes = currentProduct.Changes
+		productIn.Changes = currentProduct.Changes
 	}
 
 	//update the database
 	collection := conn.Collection("products")
 	filter := bson.M{"_id": barcode}
-	collection.FindOneAndReplace(context.TODO(), filter, product, options.FindOneAndReplace().SetUpsert(true))
+	collection.FindOneAndReplace(context.TODO(), filter, productIn, options.FindOneAndReplace().SetUpsert(true))
 
 }
 
@@ -161,11 +163,11 @@ func canVote(barcode string, username string, part string, version int) bool {
 	}
 	f := doc.Next(context.TODO())
 	if !f {
-		log.Print("Cant vote")
-		return false
+		log.Print("Can vote")
+		return true
 	}
-	log.Print("Can vote")
-	return true
+	log.Print("Cant vote")
+	return false
 }
 
 func getProductInfo(barcode string, user string) product {
@@ -178,7 +180,7 @@ func getProductInfo(barcode string, user string) product {
 		finalProduct.Error = "Product not found"
 	}
 	if !checkScanned(user, barcode) {
-		addPoints(1, true, user, barcode, "SCAN")
+		addPoints(1, true, user, barcode, "SCAN", 0)
 	}
 	return finalProduct
 }
@@ -213,10 +215,10 @@ func checkScanned(username string, barcode string) bool {
 
 }
 
-func addPoints(points int, confirmed bool, user string, barcode string, ptype string) {
+func addPoints(points int, confirmed bool, user string, barcode string, ptype string, version int) {
 	collection := conn.Collection("user")
 	filter := bson.D{{"_id", user}}
-	p := histpoints{barcode, 0, ptype, points, confirmed, time.Now().Unix()}
+	p := histpoints{barcode, version, ptype, points, confirmed, time.Now().Unix()}
 	update := bson.D{
 		{"$inc", bson.D{
 			{"points", points},
