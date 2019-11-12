@@ -137,9 +137,13 @@ func addProductData(barcode string, productIn product, user string) {
 	//if changed, keep old copy.
 	if changed {
 		productIn.Version = currentProduct.Version + 1
-		p2 := make([]product, 1)
-		currentProduct.Changes = p2
-		productIn.Changes = currentProduct.Changes //append(currentProduct.Changes, currentProduct)
+		//Keep the last three changes
+		if len(currentProduct.Changes) > 2 {
+			productIn.Changes = append(currentProduct.Changes[1:], currentProduct)
+		} else {
+			productIn.Changes = append(currentProduct.Changes, currentProduct)
+		}
+
 	} else {
 		productIn.Changes = currentProduct.Changes
 	}
