@@ -22,7 +22,7 @@ type histpoints struct {
 	Timestamp int64
 }
 
-func getAccount(username string) (user, error) {
+func getAccountDB(username string) (user, error) {
 	var account user
 	collection := conn.Collection("user")
 	filter := bson.M{"_id": username}
@@ -32,7 +32,7 @@ func getAccount(username string) (user, error) {
 }
 
 func getAccount(w http.ResponseWriter, r *http.Request) {
-	account, err := getAccount(getUsername(r))
+	account, err := getAccountDB(getUsername(r))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
