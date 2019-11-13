@@ -31,7 +31,7 @@ func getAccount(username string) (user, error) {
 	return account, err
 }
 
-func getProduct(w http.ResponseWriter, r *http.Request) {
+func getAccount(w http.ResponseWriter, r *http.Request) {
 	account, err := getAccount(getUsername(r))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
