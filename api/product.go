@@ -201,8 +201,8 @@ func downVote(barcode string, username string, part string) {
 }
 
 type vote struct {
-	part    string
-	confirm bool
+	Part    string
+	Confirm bool
 }
 
 func voteOnProduct(w http.ResponseWriter, r *http.Request) {
@@ -214,10 +214,10 @@ func voteOnProduct(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if voteJ.confirm {
-		upVote(barcode, getUsername(r), voteJ.part)
+	if voteJ.Confirm {
+		upVote(barcode, getUsername(r), voteJ.Part)
 	} else {
-		downVote(barcode, getUsername(r), voteJ.part)
+		downVote(barcode, getUsername(r), voteJ.Part)
 	}
 }
 
