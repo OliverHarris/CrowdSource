@@ -177,6 +177,16 @@ func upVote(barcode string, username string, part string) {
 		}
 		addPoints(1, false, username, barcode, (part + "Vote+"), p.Trust[part].Version)
 		fmt.Println("updated a single document: ", updateResult.MatchedCount)
+
+		if p.Trust[part].Confirm > 3 {
+			log.Print("Validating")
+			validatePoints(true, barcode, p.Trust[part].Version, part)
+		}
+	}
+
+	if p.Trust[part].Confirm > 3 {
+		log.Print("Validating")
+		validatePoints(true, barcode, p.Trust[part].Version, part)
 	}
 }
 
@@ -199,6 +209,11 @@ func downVote(barcode string, username string, part string) {
 		}
 		addPoints(1, false, username, barcode, (part + "Vote-"), p.Trust[part].Version)
 		fmt.Println("updated a single document: ", updateResult.MatchedCount)
+
+		if p.Trust[part].Deny > 3 {
+			log.Print("Validating")
+			validatePoints(false, barcode, p.Trust[part].Version, part)
+		}
 	}
 }
 
