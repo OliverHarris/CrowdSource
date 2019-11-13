@@ -200,6 +200,27 @@ func downVote(barcode string, username string, part string) {
 	}
 }
 
+type vote struct {
+	part    string
+	confirm bool
+}
+
+func voteOnProduct(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	barcode := params["barcode"]
+	decoder := json.NewDecoder(r.Body)
+	var voteJ vote
+	err := decoder.Decode(&voteJ)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if voteJ.confirm {
+		upVote(barcode, getUsername(r), voteJ.part)
+	} else {
+		downVote(barcode, getUsername(r), voteJ.part)
+	}
+}
+
 func canVote(barcode string, username string, part string, version int) bool {
 	collection := conn.Collection("user")
 	filter := bson.D{{"_id", username},
