@@ -60,14 +60,14 @@ func addProductData(barcode string, productIn product, user string) {
 					currentProduct.Trust["ProductName"].Deny,
 					currentProduct.Trust["ProductName"].Version}
 				productIn.Trust["ProductName"] = p
-				addPoints(1, false, user, barcode, "ProductNameUpVote", currentProduct.Trust["ProductName"].Version)
+				addPoints(1, false, user, barcode, "ProductNameVote+", currentProduct.Trust["ProductName"].Version)
 			} else {
 				productIn.Trust["ProductName"] = currentProduct.Trust["ProductName"]
 			}
 
 		} else {
 			changed = true
-			addPoints(1, false, user, barcode, "PRODUCTNAMEUPDATE", 0)
+			addPoints(1, false, user, barcode, "PRODUCTNAMe+DATE", 0)
 			p.Version = currentProduct.Trust["ProductName"].Version + 1
 			productIn.Trust["ProductName"] = p
 		}
@@ -81,7 +81,7 @@ func addProductData(barcode string, productIn product, user string) {
 					currentProduct.Trust["Ingredients"].Confirm + 1, currentProduct.Trust["Ingredients"].Deny,
 					currentProduct.Trust["Ingredients"].Version}
 				productIn.Trust["Ingredients"] = p
-				addPoints(1, false, user, barcode, "ingredientsUpVote", currentProduct.Trust["Ingredients"].Version)
+				addPoints(1, false, user, barcode, "IngredientsVote+", currentProduct.Trust["Ingredients"].Version)
 			} else {
 				productIn.Trust["Ingredients"] = currentProduct.Trust["Ingredients"]
 			}
@@ -103,7 +103,7 @@ func addProductData(barcode string, productIn product, user string) {
 					currentProduct.Trust["Nutrition"].Confirm + 1, currentProduct.Trust["Nutrition"].Deny,
 					currentProduct.Trust["Nutrition"].Version}
 				productIn.Trust["Nutrition"] = p
-				addPoints(1, false, user, barcode, "NutritionUpVote", currentProduct.Trust["Nutrition"].Version)
+				addPoints(1, false, user, barcode, "NutritionVote+", currentProduct.Trust["Nutrition"].Version)
 			} else {
 				productIn.Trust["Nutrition"] = currentProduct.Trust["Nutrition"]
 			}
@@ -124,7 +124,7 @@ func addProductData(barcode string, productIn product, user string) {
 					currentProduct.Trust["Serving"].Confirm + 1, currentProduct.Trust["Serving"].Deny,
 					currentProduct.Trust["Serving"].Version}
 				productIn.Trust["Serving"] = p
-				addPoints(1, false, user, barcode, "ServingUpVote", currentProduct.Trust["Serving"].Version)
+				addPoints(1, false, user, barcode, "ServingVote+", currentProduct.Trust["Serving"].Version)
 			} else {
 				productIn.Trust["Serving"] = currentProduct.Trust["Serving"]
 			}
@@ -161,7 +161,8 @@ func addProductData(barcode string, productIn product, user string) {
 func upVote(barcode string, username string, part string) {
 	p := getProductInfo(barcode)
 
-	if canVote(barcode, username, (part + "+"), p.Trust[part].Version) {
+	if canVote(barcode, username, (part+"Vote+"), p.Trust[part].Version) &&
+		canVote(barcode, username, (part+"Vote-"), p.Trust[part].Version) {
 		//Upvote
 		collection := conn.Collection("products")
 		filter := bson.D{{"_id", barcode}}
@@ -174,7 +175,7 @@ func upVote(barcode string, username string, part string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-
+		addPoints(1, false, username, barcode, (part + "Vote+"), p.Trust[part].Version)
 		fmt.Println("updated a single document: ", updateResult.MatchedCount)
 	}
 }
@@ -182,7 +183,8 @@ func upVote(barcode string, username string, part string) {
 func downVote(barcode string, username string, part string) {
 	p := getProductInfo(barcode)
 
-	if canVote(barcode, username, (part + "+"), p.Trust[part].Version) {
+	if canVote(barcode, username, (part+"Vote-"), p.Trust[part].Version) &&
+		canVote(barcode, username, (part+"Vote+"), p.Trust[part].Version) {
 		//Upvote
 		collection := conn.Collection("products")
 		filter := bson.D{{"_id", barcode}}
@@ -195,7 +197,7 @@ func downVote(barcode string, username string, part string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-
+		addPoints(1, false, username, barcode, (part + "Vote-"), p.Trust[part].Version)
 		fmt.Println("updated a single document: ", updateResult.MatchedCount)
 	}
 }
@@ -222,6 +224,7 @@ func voteOnProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func canVote(barcode string, username string, part string, version int) bool {
+	log.Printf("Checking that %s can vote on %s part %s", username, barcode, part)
 	collection := conn.Collection("user")
 	filter := bson.D{{"_id", username},
 		{"pointsHistory.item", barcode},
