@@ -32,6 +32,7 @@ func main() {
 	//router.Use(cors)
 
 	router.HandleFunc("/account", getAccount).Methods("GET")
+	router.HandleFunc("/board", getBoard).Methods("GET")
 	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
 }
 

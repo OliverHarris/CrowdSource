@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type user struct {
@@ -40,4 +42,30 @@ func getAccount(w http.ResponseWriter, r *http.Request) {
 	output, _ := json.Marshal(account)
 	w.Write(output)
 
+}
+
+func getBoard(w http.ResponseWriter, r *http.Request) {
+	scores := getTopScores(5)
+	output, _ := json.Marshal(scores)
+	w.Write(output)
+}
+
+type score struct {
+	Username string `bson:"_id"`
+	Points   int
+}
+
+func getTopScores(numberToGet int) []score {
+	collection := conn.Collection("user")
+	filter := bson.M{} //Could find with "public" tag
+	findOptions := options.Find()
+	findOptions.SetLimit(int64(numberToGet))
+	findOptions.SetSort(bson.D{{"points", -1}})
+	docs, err := collection.Find(context.TODO(), filter, findOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var scores []score
+	docs.All(context.TODO(), &scores)
+	return scores
 }
