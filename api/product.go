@@ -164,10 +164,31 @@ func upVote(barcode string, username string, part string) {
 	if canVote(barcode, username, (part + "+"), p.Trust[part].Version) {
 		//Upvote
 		collection := conn.Collection("products")
-		filter := bson.D{{"_id", "000343"}}
+		filter := bson.D{{"_id", barcode}}
 		update := bson.D{
 			{"$inc", bson.D{
-				{"trust.ProductName.deny", 1},
+				{"trust." + part + ".confirm", 1},
+			}}}
+
+		updateResult, err := collection.UpdateOne(context.TODO(), filter, update)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("updated a single document: ", updateResult.MatchedCount)
+	}
+}
+
+func downVote(barcode string, username string, part string) {
+	p := getProductInfo(barcode)
+
+	if canVote(barcode, username, (part + "+"), p.Trust[part].Version) {
+		//Upvote
+		collection := conn.Collection("products")
+		filter := bson.D{{"_id", barcode}}
+		update := bson.D{
+			{"$inc", bson.D{
+				{"trust." + part + ".deny", 1},
 			}}}
 
 		updateResult, err := collection.UpdateOne(context.TODO(), filter, update)
