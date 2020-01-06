@@ -56,11 +56,13 @@ func getUsername(r *http.Request) string {
 	}
 	tokenString := authHeaderParts[1]
 	token, err := jwt.ParseWithClaims(tokenString, &customClaims{}, nil)
-	if err != nil {
+	if err != nil && debug {
 		log.Printf("Token not found. Giving test username (error) %e", err)
 		return "test"
+	} else if err != nil {
+		failOnError(err, "Token not found")
 	}
-	claims, _ := token.Claims.(*CustomClaims)
+	claims, _ := token.Claims.(*customClaims)
 	fmt.Printf("(user) %s ", claims.Subject)
 	return claims.Subject
 
