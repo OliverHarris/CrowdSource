@@ -23,10 +23,11 @@ func main() {
 	err := godotenv.Load()
 	failOnError(err, "Error getting env vars")
 
-	debug, err = strconv.ParseBool(os.Getenv("debug"))
+	debug, err = strconv.ParseBool(os.Getenv("DEBUG"))
 	if err != nil {
 		debug = false
 	}
+
 	//Create a database connection
 	conn, err = configDB(context.Background())
 	failOnError(err, "Connecting to database failed")
