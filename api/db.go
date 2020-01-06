@@ -12,13 +12,9 @@ import (
 func configDB(ctx context.Context) (*mongo.Database, error) {
 	uri := fmt.Sprintf("mongodb://%s", os.Getenv("DBHOST"))
 	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
-	if err != nil {
-		return nil, fmt.Errorf("couldn't connect to mongo: %v", err)
-	}
+	failOnError(err, "Couldn't connect to mongo")
 	err = client.Connect(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("mongo client couldn't connect with background context: %v", err)
-	}
+	failOnError(err, "Mongo client couldn't connect with background context")
 	todoDB := client.Database("pro")
 	return todoDB, nil
 }
