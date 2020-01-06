@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -15,12 +16,17 @@ import (
 )
 
 var conn *mongo.Database
+var debug bool
 
 func main() {
 	//load the env file
 	err := godotenv.Load()
 	failOnError(err, "Error getting env vars")
 
+	debug, err = strconv.ParseBool(os.Getenv("debug"))
+	if err != nil {
+		debug = false
+	}
 	//Create a database connection
 	conn, err = configDB(context.Background())
 	failOnError(err, "Connecting to database failed")
@@ -33,7 +39,8 @@ func main() {
 	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
 }
 
-type CustomClaims struct {
+//Auth0
+type customClaims struct {
 	Scope string `json:"scope"`
 	jwt.StandardClaims
 }
@@ -41,12 +48,14 @@ type CustomClaims struct {
 func getUsername(r *http.Request) string {
 	authHeaderParts := strings.Split(r.Header.Get("Authorization"), " ")
 	log.Printf("Length %v", len(authHeaderParts))
-	if len(authHeaderParts) < 2 {
+
+	//when auth0 is turned off, all users are "test"
+	if len(authHeaderParts) < 2 && debug {
 		log.Printf("Token not found. Giving test username")
 		return "test"
 	}
 	tokenString := authHeaderParts[1]
-	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, nil)
+	token, err := jwt.ParseWithClaims(tokenString, &customClaims{}, nil)
 	if err != nil {
 		log.Printf("Token not found. Giving test username (error) %e", err)
 		return "test"
