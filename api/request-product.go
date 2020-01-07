@@ -23,3 +23,11 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 	w.Write(output)
 
 }
+
+func postProduct(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func putProduct(w http.ResponseWriter, r *http.Request) {
+
+}
