@@ -6,12 +6,12 @@ import (
 	"log"
 	"time"
 
-	"../product"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Point is for the user
 type point struct {
 	Item      string
 	Version   int
@@ -22,14 +22,14 @@ type point struct {
 }
 
 // PointsForScan - Add point for scanning product if it hasn't been scanned
-func PointsForScan(product product.Product, username string, conn *mongo.Database) {
+func PointsForScan(barcode string, ver int, username string, conn *mongo.Database) {
 	collection := conn.Collection("user")
 	filter := bson.M{"_id": username,
-		"pointsHistory.item": product.ID}
+		"pointsHistory.item": barcode}
 	doc, _ := collection.Find(context.TODO(), filter, nil)
 	if !doc.Next(context.TODO()) {
 		//Add the points to the user
-		p := point{product.ID, product.Version, "SCAN", 1, true, time.Now().Unix()}
+		p := point{barcode, ver, "SCAN", 1, true, time.Now().Unix()}
 		addPoint(p, username, conn)
 	}
 }
