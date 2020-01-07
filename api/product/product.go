@@ -38,3 +38,20 @@ func GetProductInfo(barcode string, conn *mongo.Database) Product {
 	}
 	return finalProduct
 }
+
+func CreateProduct(p Product, user string) {
+	//decide how many points they should get
+	var points int
+	if len(p.Ingredients) > 0 {
+		points++
+	}
+	if len(p.Nutrition) > 0 {
+		points++
+	}
+	if p.ProductName != "" {
+		points++
+	}
+	if p.Serving != "" {
+		points++
+	}
+}
