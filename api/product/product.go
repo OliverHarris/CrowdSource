@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"../user"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -40,20 +41,22 @@ func GetProductInfo(barcode string, conn *mongo.Database) Product {
 	return finalProduct
 }
 
-func CreateProduct(p Product, username string) {
+func CreateProduct(p Product, username string, conn *mongo.Database) {
 	//decide how many points they should get
-	var points int
 	if len(p.Ingredients) > 0 {
-		p := Points{product.ID, product.Version, "SCAN", 1, true, time.Now().Unix()}
-
+		point := user.Point{p.ID, p.Version, "INGREDIENTS", 1, false, time.Now().Unix()}
+		user.AddPoint(point, username, conn)
 	}
 	if len(p.Nutrition) > 0 {
-		points++
+		point := user.Point{p.ID, p.Version, "NUTRITION", 1, false, time.Now().Unix()}
+		user.AddPoint(point, username, conn)
 	}
 	if p.ProductName != "" {
-		points++
+		point := user.Point{p.ID, p.Version, "NAME", 1, false, time.Now().Unix()}
+		user.AddPoint(point, username, conn)
 	}
 	if p.Serving != "" {
-		points++
+		point := user.Point{p.ID, p.Version, "SERVING", 1, false, time.Now().Unix()}
+		user.AddPoint(point, username, conn)
 	}
 }

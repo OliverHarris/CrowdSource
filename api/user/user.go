@@ -12,7 +12,7 @@ import (
 )
 
 // Point is for the user
-type point struct {
+type Point struct {
 	Item      string
 	Version   int
 	Type      string
@@ -29,12 +29,13 @@ func PointsForScan(barcode string, ver int, username string, conn *mongo.Databas
 	doc, _ := collection.Find(context.TODO(), filter, nil)
 	if !doc.Next(context.TODO()) {
 		//Add the points to the user
-		p := point{barcode, ver, "SCAN", 1, true, time.Now().Unix()}
-		addPoint(p, username, conn)
+		p := Point{barcode, ver, "SCAN", 1, true, time.Now().Unix()}
+		AddPoint(p, username, conn)
 	}
 }
 
-func addPoint(p point, user string, conn *mongo.Database) {
+//AddPoint
+func AddPoint(p Point, user string, conn *mongo.Database) {
 	collection := conn.Collection("user")
 	filter := bson.M{"_id": user}
 	update := bson.M{
