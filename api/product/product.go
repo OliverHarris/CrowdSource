@@ -59,4 +59,14 @@ func CreateProduct(p Product, username string, conn *mongo.Database) {
 		point := user.Point{p.ID, p.Version, "SERVING", 1, false, time.Now().Unix()}
 		user.AddPoint(point, username, conn)
 	}
+	//Add the trust system
+	po := points{username, 0, 0, 0}
+	p.Trust["ProductName"] = po
+	p.Trust["Ingredients"] = po
+	p.Trust["Serving"] = po
+	p.Trust["Nutrition"] = po
+
+	//Now insert it into the database
+	collection := conn.Collection("products")
+	collection.InsertOne(context.TODO(), p)
 }
