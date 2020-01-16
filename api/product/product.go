@@ -72,7 +72,7 @@ func GetProductInfo(barcode string, conn *mongo.Database) Product {
 	return finalProduct
 }
 
-func CreateProduct(p ProductInput, username string, conn *mongo.Database) {
+func AlterProduct(p ProductInput, username string, conn *mongo.Database) {
 	//decide how many points they should get
 	prod := GetProductInfo(p.ID, conn)
 	sec := time.Now().Unix()
