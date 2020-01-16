@@ -24,10 +24,6 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func postProduct(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func putProduct(w http.ResponseWriter, r *http.Request) {
+func changeProduct(w http.ResponseWriter, r *http.Request) {
 
 }

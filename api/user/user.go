@@ -14,7 +14,7 @@ import (
 // Point is for the user
 type Point struct {
 	Item      string
-	Version   int
+	Version   int64
 	Type      string
 	Points    int
 	Confirmed bool
@@ -22,7 +22,7 @@ type Point struct {
 }
 
 // PointsForScan - Add point for scanning product if it hasn't been scanned
-func PointsForScan(barcode string, ver int, username string, conn *mongo.Database) {
+func PointsForScan(barcode string, ver int64, username string, conn *mongo.Database) {
 	collection := conn.Collection("user")
 	filter := bson.M{"_id": username,
 		"pointsHistory.item": barcode}
