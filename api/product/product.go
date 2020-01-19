@@ -2,6 +2,7 @@ package product
 
 import (
 	"context"
+	"log"
 	"reflect"
 	"time"
 
@@ -19,15 +20,6 @@ type Product struct {
 	ID          string `bson:"_id"`
 	Error       string
 	Version     int64
-}
-
-//New product from the client
-type ProductInput struct {
-	ID          string `bson:"_id"`
-	ProductName string
-	Ingredients []string
-	Serving     string
-	Nutrition   map[string]float32
 }
 
 type pName struct {
@@ -67,35 +59,36 @@ func GetProductInfo(barcode string, conn *mongo.Database) Product {
 	var finalProduct Product
 	err := doc.Decode(&finalProduct)
 	if err != nil {
+		log.Printf("error %s", err)
 		finalProduct.Error = "Product not found"
 	}
 	return finalProduct
 }
 
-func AlterProduct(p ProductInput, username string, conn *mongo.Database) {
+func AlterProduct(p Product, username string, conn *mongo.Database) {
 	//decide how many points they should get
 	prod := GetProductInfo(p.ID, conn)
 	sec := time.Now().Unix()
-	if len(p.Ingredients) > 0 && !testEq(p.Ingredients, prod.Ingredients.Ingredients) {
-		prod.Ingredients = pIng{Ingredients: p.Ingredients}
+	if len(p.Ingredients.Ingredients) > 0 && !testEq(p.Ingredients.Ingredients, prod.Ingredients.Ingredients) {
+		prod.Ingredients = pIng{Ingredients: p.Ingredients.Ingredients}
 		prod.Ingredients.Stamp = sec
 		point := user.Point{p.ID, sec, "INGREDIENTS", 1, false, sec}
 		user.AddPoint(point, username, conn)
 	}
-	if len(p.Nutrition) > 0 && reflect.DeepEqual(p.Nutrition, prod.Nutrition.Nutrition) {
-		prod.Nutrition = pNutrition{Nutrition: p.Nutrition}
+	if len(p.Nutrition.Nutrition) > 0 && reflect.DeepEqual(p.Nutrition.Nutrition, prod.Nutrition.Nutrition) {
+		prod.Nutrition = pNutrition{Nutrition: p.Nutrition.Nutrition}
 		prod.Nutrition.Stamp = sec
 		point := user.Point{p.ID, sec, "NUTRITION", 1, false, time.Now().Unix()}
 		user.AddPoint(point, username, conn)
 	}
-	if p.ProductName != "" && p.ProductName != prod.ProductName.Name {
-		prod.ProductName = pName{Name: p.ProductName}
+	if p.ProductName.Name != "" && p.ProductName.Name != prod.ProductName.Name {
+		prod.ProductName = pName{Name: p.ProductName.Name}
 		prod.ProductName.Stamp = sec
 		point := user.Point{p.ID, sec, "NAME", 1, false, time.Now().Unix()}
 		user.AddPoint(point, username, conn)
 	}
-	if p.Serving != "" && p.Serving != prod.Serving.Serving {
-		prod.Serving = pServing{Serving: p.Serving}
+	if p.Serving.Serving != "" && p.Serving.Serving != prod.Serving.Serving {
+		prod.Serving = pServing{Serving: p.Serving.Serving}
 		prod.Serving.Stamp = sec
 		point := user.Point{p.ID, sec, "SERVING", 1, false, time.Now().Unix()}
 		user.AddPoint(point, username, conn)
