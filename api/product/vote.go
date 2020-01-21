@@ -95,5 +95,8 @@ func VoteOnProduct(v Vote, username string, conn *mongo.Database) {
 			user.AddPoint(point, username, conn)
 		}
 	}
+	collection := conn.Collection("products")
+	filter := bson.M{"_id": p.ID}
+	collection.FindOneAndReplace(context.TODO(), filter, p)
 
 }
