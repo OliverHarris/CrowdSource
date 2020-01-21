@@ -9,6 +9,7 @@ import (
 	"../user"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 //Product information
@@ -84,7 +85,9 @@ func AlterProduct(p Product, username string, conn *mongo.Database) {
 	prod.Version = sec
 	//Now insert it into the database
 	collection := conn.Collection("products")
-	collection.InsertOne(context.TODO(), p)
+	filter := bson.M{"_id": p.ID}
+	collection.FindOneAndReplace(context.TODO(), filter, p, options.FindOneAndReplace().SetUpsert(true))
+	//collection.InsertOne(context.TODO(), p)
 }
 
 func testEq(a, b []string) bool {
