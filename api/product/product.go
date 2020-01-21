@@ -38,8 +38,8 @@ type pIng struct {
 
 type pNutrition struct {
 	Nutrition   map[string][2]float32
-	Weight      int
-	Recommended int
+	Weight      string
+	Recommended string
 	Up          int
 	Down        int
 	Changes     []pNutrition
