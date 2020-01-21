@@ -95,18 +95,5 @@ func VoteOnProduct(v Vote, username string, conn *mongo.Database) {
 			user.AddPoint(point, username, conn)
 		}
 	}
-	vc = VoteCheck{"SERVING", v.ID, p.Serving.Stamp, username, conn}
-	if canVote(vc) {
-
-		if v.Serving > 0 {
-			p.Serving.Up++
-			point := user.Point{p.ID, p.Serving.Stamp, "SERVINGUP", 1, false, sec}
-			user.AddPoint(point, username, conn)
-		} else if v.Serving < 0 {
-			p.Serving.Down--
-			point := user.Point{p.ID, p.Serving.Stamp, "SERVINGDOWN", 1, false, sec}
-			user.AddPoint(point, username, conn)
-		}
-	}
 
 }

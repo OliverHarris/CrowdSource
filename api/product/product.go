@@ -15,7 +15,6 @@ import (
 type Product struct {
 	ProductName pName
 	Ingredients pIng
-	Serving     pServing
 	Nutrition   pNutrition
 	ID          string `bson:"_id"`
 	Error       string
@@ -36,20 +35,15 @@ type pIng struct {
 	Changes     []pIng
 	Stamp       int64
 }
-type pServing struct {
-	Serving string
-	Up      int
-	Down    int
-	Changes []pServing
-	Stamp   int64
-}
 
 type pNutrition struct {
-	Nutrition map[string]float32
-	Up        int
-	Down      int
-	Changes   []pNutrition
-	Stamp     int64
+	Nutrition   map[string][2]float32
+	Weight      int
+	Recommended int
+	Up          int
+	Down        int
+	Changes     []pNutrition
+	Stamp       int64
 }
 
 func GetProductInfo(barcode string, conn *mongo.Database) Product {
@@ -85,12 +79,6 @@ func AlterProduct(p Product, username string, conn *mongo.Database) {
 		prod.ProductName = pName{Name: p.ProductName.Name}
 		prod.ProductName.Stamp = sec
 		point := user.Point{p.ID, sec, "NAME", 1, false, time.Now().Unix()}
-		user.AddPoint(point, username, conn)
-	}
-	if p.Serving.Serving != "" && p.Serving.Serving != prod.Serving.Serving {
-		prod.Serving = pServing{Serving: p.Serving.Serving}
-		prod.Serving.Stamp = sec
-		point := user.Point{p.ID, sec, "SERVING", 1, false, time.Now().Unix()}
 		user.AddPoint(point, username, conn)
 	}
 	prod.Version = sec
