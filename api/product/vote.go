@@ -55,7 +55,7 @@ func checkCanVote(v VoteCheck) bool {
 }
 
 func VoteOnProduct(v Vote, username string, conn *mongo.Database) {
-	p := GetProductInfo(v.ID, conn)
+	p := GetProductInfo(v.ID, username, conn)
 	sec := time.Now().Unix()
 	vc := VoteCheck{"NAME", v.ID, p.ProductName.Stamp, username, conn}
 	if canVote(vc) {

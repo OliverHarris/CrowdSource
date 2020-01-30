@@ -28,6 +28,7 @@ type pName struct {
 	Down    int
 	Changes []pName
 	Stamp   int64
+	Vote    bool
 }
 type pIng struct {
 	Ingredients []string
@@ -35,6 +36,7 @@ type pIng struct {
 	Down        int
 	Changes     []pIng
 	Stamp       int64
+	Vote        bool
 }
 
 type pNutrition struct {
@@ -45,9 +47,10 @@ type pNutrition struct {
 	Down        int
 	Changes     []pNutrition
 	Stamp       int64
+	Vote        bool
 }
 
-func GetProductInfo(barcode string, conn *mongo.Database) Product {
+func GetProductInfo(barcode string, username string, conn *mongo.Database) Product {
 	collection := conn.Collection("products")
 	filter := bson.M{"_id": barcode}
 	doc := collection.FindOne(context.TODO(), filter)
@@ -56,13 +59,24 @@ func GetProductInfo(barcode string, conn *mongo.Database) Product {
 	if err != nil {
 		log.Printf("error %s", err)
 		finalProduct.Error = "Product not found"
+	} else {
+		vc := VoteCheck{"INGREDIENTS", finalProduct.ID, finalProduct.Ingredients.Stamp, username, conn}
+		finalProduct.Ingredients.Vote = canVote(vc)
+		vc.part = "NAME"
+		vc.version = finalProduct.ProductName.Stamp
+		finalProduct.ProductName.Vote = canVote(vc)
+
+		vc.part = "NUTRITION"
+		vc.version = finalProduct.Nutrition.Stamp
+		finalProduct.Nutrition.Vote = canVote(vc)
+
 	}
 	return finalProduct
 }
 
 func AlterProduct(p Product, username string, conn *mongo.Database) {
 	//decide how many points they should get
-	prod := GetProductInfo(p.ID, conn)
+	prod := GetProductInfo(p.ID, username, conn)
 	sec := time.Now().Unix()
 	if len(p.Ingredients.Ingredients) > 0 && !testEq(p.Ingredients.Ingredients, prod.Ingredients.Ingredients) {
 		prod.Ingredients = pIng{Ingredients: p.Ingredients.Ingredients}
