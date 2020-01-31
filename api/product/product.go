@@ -24,17 +24,17 @@ type Product struct {
 
 type pName struct {
 	Name    string
-	Up      int
-	Down    int
+	Votes   PerVote
+	Users   []UserVote
 	Changes []pName
 	Stamp   int64
 	Vote    bool
 }
 type pIng struct {
 	Ingredients []string
-	Up          int
-	Down        int
+	Votes       PerVote
 	Changes     []pIng
+	Users       []UserVote
 	Stamp       int64
 	Vote        bool
 }
@@ -43,11 +43,24 @@ type pNutrition struct {
 	Nutrition   map[string][2]float32
 	Weight      string
 	Recommended string
-	Up          int
-	Down        int
+	Votes       PerVote
 	Changes     []pNutrition
+	Users       []UserVote
 	Stamp       int64
 	Vote        bool
+}
+
+type PerVote struct {
+	UpHigh   int
+	UpLow    int
+	DownHigh int
+	DownLow  int
+	Users    []UserVote
+}
+
+type UserVote struct {
+	User string
+	Up   bool
 }
 
 func GetProductInfo(barcode string, username string, conn *mongo.Database) Product {
@@ -60,6 +73,7 @@ func GetProductInfo(barcode string, username string, conn *mongo.Database) Produ
 		log.Printf("error %s", err)
 		finalProduct.Error = "Product not found"
 	} else {
+
 		vc := VoteCheck{"INGREDIENTS", finalProduct.ID, finalProduct.Ingredients.Stamp, username, conn}
 		finalProduct.Ingredients.Vote = canVote(vc)
 		vc.part = "NAME"
