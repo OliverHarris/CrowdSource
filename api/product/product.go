@@ -73,16 +73,9 @@ func GetProductInfo(barcode string, username string, conn *mongo.Database) Produ
 		log.Printf("error %s", err)
 		finalProduct.Error = "Product not found"
 	} else {
-
-		vc := VoteCheck{"INGREDIENTS", finalProduct.ID, finalProduct.Ingredients.Stamp, username, conn}
-		finalProduct.Ingredients.Vote = canVote(vc)
-		vc.part = "NAME"
-		vc.version = finalProduct.ProductName.Stamp
-		finalProduct.ProductName.Vote = canVote(vc)
-
-		vc.part = "NUTRITION"
-		vc.version = finalProduct.Nutrition.Stamp
-		finalProduct.Nutrition.Vote = canVote(vc)
+		finalProduct.Ingredients.Vote = canVote(finalProduct.Ingredients.Users, username)
+		finalProduct.ProductName.Vote = canVote(finalProduct.ProductName.Users, username)
+		finalProduct.Nutrition.Vote = canVote(finalProduct.Nutrition.Users, username)
 
 	}
 	return finalProduct

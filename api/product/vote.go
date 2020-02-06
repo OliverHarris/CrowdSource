@@ -26,13 +26,13 @@ type VoteCheck struct {
 	conn     *mongo.Database
 }
 
-func canVote(v VoteCheck) bool {
-	v1 := v
-	v1.part = v1.part + "UP"
-	v2 := v
-	v2.part = v2.part + "DOWN"
-	return checkCanVote(v1) && checkCanVote(v2)
-
+func canVote(v []UserVote, user string) bool {
+	for _, a := range v {
+		if a.User == user {
+			return true
+		}
+	}
+	return false
 }
 
 func checkCanVote(v VoteCheck) bool {
