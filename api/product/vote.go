@@ -2,7 +2,6 @@ package product
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"../user"
@@ -32,25 +31,6 @@ func canVote(v []UserVote, user string) bool {
 			return true
 		}
 	}
-	return false
-}
-
-func checkCanVote(v VoteCheck) bool {
-	collection := v.conn.Collection("user")
-	filter := bson.D{{"_id", v.username},
-		{"pointsHistory.item", v.barcode},
-		{"pointsHistory.type", v.part},
-		{"pointsHistory.version", v.version}}
-	doc, err := collection.Find(context.TODO(), filter, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	f := doc.Next(context.TODO())
-	if !f {
-		log.Print("Can vote")
-		return true
-	}
-	log.Print("Cant vote")
 	return false
 }
 
