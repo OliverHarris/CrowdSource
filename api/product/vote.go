@@ -2,7 +2,6 @@ package product
 
 import (
 	"context"
-	"time"
 
 	"../user"
 	"go.mongodb.org/mongo-driver/bson"
@@ -28,52 +27,73 @@ type VoteCheck struct {
 func canVote(v []UserVote, user string) bool {
 	for _, a := range v {
 		if a.User == user {
-			return true
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 func VoteOnProduct(v Vote, username string, conn *mongo.Database) {
 	p := GetProductInfo(v.ID, username, conn)
-	sec := time.Now().Unix()
-	vc := VoteCheck{"NAME", v.ID, p.ProductName.Stamp, username, conn}
-	if canVote(vc) {
+	level := user.GetLevel(username, conn)
+	if canVote(p.ProductName.Users, username) {
 		if v.Name > 0 {
-			p.ProductName.Up++
-			point := user.Point{p.ID, p.ProductName.Stamp, "NAMEUP", 1, false, sec}
-			user.AddPoint(point, username, conn)
+			switch level {
+			case 0:
+				p.ProductName.Votes.UpLow++
+			default:
+				p.ProductName.Votes.UpHigh++
+			}
+			p.ProductName.Users = append(p.ProductName.Users, UserVote{username, true})
 		} else if v.Name < 0 {
-			p.ProductName.Down--
-			point := user.Point{p.ID, p.ProductName.Stamp, "NAMEDOWN", 1, false, sec}
-			user.AddPoint(point, username, conn)
+			switch level {
+			case 0:
+				p.ProductName.Votes.DownLow++
+			default:
+				p.ProductName.Votes.DownHigh++
+			}
+			p.ProductName.Users = append(p.ProductName.Users, UserVote{username, false})
 		}
 	}
-	vc = VoteCheck{"INGREDIENTS", v.ID, p.Ingredients.Stamp, username, conn}
-	if canVote(vc) {
+	if canVote(p.Ingredients.Users, username) {
 
-		if v.Ingredients > 0 && canVote(vc) {
-			p.Ingredients.Up++
-			point := user.Point{p.ID, p.Ingredients.Stamp, "INGREDIENTSUP", 1, false, sec}
-			user.AddPoint(point, username, conn)
+		if v.Ingredients > 0 {
+			switch level {
+			case 0:
+				p.Ingredients.Votes.UpLow++
+			default:
+				p.Ingredients.Votes.UpHigh++
+			}
+			p.Ingredients.Users = append(p.Ingredients.Users, UserVote{username, true})
 		} else if v.Ingredients < 0 {
-			p.Ingredients.Down--
-			point := user.Point{p.ID, p.Ingredients.Stamp, "INGREDIENTSDOWN", 1, false, sec}
-			user.AddPoint(point, username, conn)
+			switch level {
+			case 0:
+				p.Ingredients.Votes.DownLow++
+			default:
+				p.Ingredients.Votes.DownHigh++
+			}
+			p.Ingredients.Users = append(p.Ingredients.Users, UserVote{username, false})
 		}
 	}
-	vc = VoteCheck{"NUTRITION", v.ID, p.Nutrition.Stamp, username, conn}
-	if canVote(vc) {
+	if canVote(p.Nutrition.Users, username) {
 
-		if v.Nutrition > 0 && canVote(vc) {
-			p.Nutrition.Up++
-			point := user.Point{p.ID, p.Nutrition.Stamp, "NUTRITIONUP", 1, false, sec}
-			user.AddPoint(point, username, conn)
+		if v.Nutrition > 0 {
+			switch level {
+			case 0:
+				p.Nutrition.Votes.UpLow++
+			default:
+				p.Nutrition.Votes.UpHigh++
+			}
+			p.Nutrition.Users = append(p.Nutrition.Users, UserVote{username, true})
 		} else if v.Nutrition < 0 {
-			p.Nutrition.Down--
-			point := user.Point{p.ID, p.ProductName.Stamp, "NUTRITIONDOWN", 1, false, sec}
-			user.AddPoint(point, username, conn)
+			switch level {
+			case 0:
+				p.Nutrition.Votes.DownLow++
+			default:
+				p.Nutrition.Votes.DownHigh++
+			}
 		}
+		p.Nutrition.Users = append(p.Nutrition.Users, UserVote{username, false})
 	}
 	collection := conn.Collection("products")
 	filter := bson.M{"_id": p.ID}
