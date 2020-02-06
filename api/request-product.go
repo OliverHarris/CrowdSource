@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"./product"
-	"./user"
 	"github.com/gorilla/mux"
 )
 
@@ -20,7 +19,7 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	username := getUsername(r)
-	user.PointsForScan(product.ID, product.Version, username, conn)
+	product.AddScanPoint(product, username, conn)
 	output, _ := json.Marshal(product)
 	w.Write(output)
 

@@ -20,6 +20,7 @@ type Product struct {
 	ID          string `bson:"_id"`
 	Error       string
 	Version     int64
+	Scans       []string
 }
 
 type pName struct {
@@ -86,6 +87,27 @@ func GetProductInfo(barcode string, username string, conn *mongo.Database) Produ
 
 	}
 	return finalProduct
+}
+
+func AddScanPoint(p Product, username string, conn *mongo.Database) {
+	if !stringInSlice(username, p.Scans) {
+		//They haven't scanned before. Add a point
+		log.Println("Adding point for a scan")
+		user.PointsForScan(username, conn)
+		collection := conn.Collection("products")
+		filter := bson.M{"_id": p.ID}
+		change := bson.M{"$push": bson.M{"Scans": username}}
+		collection.UpdateOne(context.TODO(), filter, change)
+	}
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
 
 func AlterProduct(p Product, username string, conn *mongo.Database) {
