@@ -12,15 +12,15 @@ import (
 func getProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	barcode := params["barcode"]
-	product := product.GetProductInfo(barcode, getUsername(r), conn)
-	log.Printf("Barcode %s with an error of? %s", barcode, product.Error)
-	if product.Error != "" {
+	p := product.GetProductInfo(barcode, getUsername(r), conn)
+	log.Printf("Barcode %s with an error of? %s", barcode, p.Error)
+	if p.Error != "" {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	username := getUsername(r)
-	product.AddScanPoint(product, username, conn)
-	output, _ := json.Marshal(product)
+	product.AddScanPoint(p, username, conn)
+	output, _ := json.Marshal(p)
 	w.Write(output)
 
 }
