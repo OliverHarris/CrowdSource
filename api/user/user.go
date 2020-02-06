@@ -17,6 +17,25 @@ type Point struct {
 	Deny    int
 }
 
+func GetLevel(username string, conn *mongo.Database) int {
+	collection := conn.Collection("user")
+	filter := bson.M{"_id": username}
+	doc := collection.FindOne(context.TODO(), filter)
+	var user Point
+	err := doc.Decode(&user)
+	failOnError(err, "Decoding user points")
+
+	//Ignore the deny points for now
+	if user.Updates > 5 && user.Scan > 5 {
+		return 2
+	} else if user.Scan > 5 {
+		return 1
+	} else {
+		return 0
+	}
+
+}
+
 // PointsForScan - Add point for scanning product if it hasn't been scanned
 func PointsForScan(username string, conn *mongo.Database) {
 	collection := conn.Collection("user")

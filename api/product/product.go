@@ -56,7 +56,6 @@ type PerVote struct {
 	UpLow    int
 	DownHigh int
 	DownLow  int
-	Users    []UserVote
 }
 
 type UserVote struct {
@@ -114,23 +113,40 @@ func AlterProduct(p Product, username string, conn *mongo.Database) {
 	//decide how many points they should get
 	prod := GetProductInfo(p.ID, username, conn)
 	sec := time.Now().Unix()
+	level := user.GetLevel(username, conn)
 	if len(p.Ingredients.Ingredients) > 0 && !testEq(p.Ingredients.Ingredients, prod.Ingredients.Ingredients) {
 		prod.Ingredients = pIng{Ingredients: p.Ingredients.Ingredients}
 		prod.Ingredients.Stamp = sec
-		point := user.Point{p.ID, sec, "INGREDIENTS", 1, false, sec}
-		user.AddPoint(point, username, conn)
+
+		switch level {
+		case 0:
+			prod.Ingredients.Votes.UpLow++
+		default:
+			prod.Ingredients.Votes.UpHigh++
+		}
+		prod.Ingredients.Users = append(prod.Ingredients.Users, UserVote{username, true})
 	}
 	if len(p.Nutrition.Nutrition) > 0 && reflect.DeepEqual(p.Nutrition.Nutrition, prod.Nutrition.Nutrition) {
 		prod.Nutrition = pNutrition{Nutrition: p.Nutrition.Nutrition}
 		prod.Nutrition.Stamp = sec
-		point := user.Point{p.ID, sec, "NUTRITION", 1, false, time.Now().Unix()}
-		user.AddPoint(point, username, conn)
+		switch level {
+		case 0:
+			prod.Nutrition.Votes.UpLow++
+		default:
+			prod.Nutrition.Votes.UpHigh++
+		}
+		prod.Nutrition.Users = append(prod.Nutrition.Users, UserVote{username, true})
 	}
 	if p.ProductName.Name != "" && p.ProductName.Name != prod.ProductName.Name {
 		prod.ProductName = pName{Name: p.ProductName.Name}
 		prod.ProductName.Stamp = sec
-		point := user.Point{p.ID, sec, "NAME", 1, false, time.Now().Unix()}
-		user.AddPoint(point, username, conn)
+		switch level {
+		case 0:
+			prod.ProductName.Votes.UpLow++
+		default:
+			prod.ProductName.Votes.UpHigh++
+		}
+		prod.ProductName.Users = append(prod.ProductName.Users, UserVote{username, true})
 	}
 	prod.Version = sec
 	//Now insert it into the database
