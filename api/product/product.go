@@ -20,7 +20,7 @@ type Product struct {
 	ID          string `bson:"_id"`
 	Error       string
 	Version     int64
-	Scans       []string
+	Scans       []string `json:"-"`
 }
 
 type pName struct {
