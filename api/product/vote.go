@@ -33,10 +33,32 @@ func canVote(v []UserVote, user string) bool {
 	return true
 }
 
+func confirmed(users []UserVote, up bool, conn *mongo.Database) {
+	for _, u := range users {
+		if u.Up == up {
+			user.PointsForUpdate(u.User, conn)
+		} else {
+			user.PointsForDeny(u.User, conn)
+		}
+	}
+}
+
+func voteComplete(v PerVote) bool {
+	tot := v.UpHigh*2 + v.UpLow
+	totd := v.DownHigh*2 + v.DownLow
+	return tot > 5 || totd > 5
+}
+
+func upWon(v PerVote) bool {
+	tot := v.UpHigh*2 + v.UpLow
+	totd := v.DownHigh*2 + v.DownLow
+	return tot > totd
+}
+
 func VoteOnProduct(v Vote, username string, conn *mongo.Database) {
 	p := GetProductInfo(v.ID, username, conn)
 	level := user.GetLevel(username, conn)
-	if canVote(p.ProductName.Users, username) {
+	if canVote(p.ProductName.Users, username) && !voteComplete(p.ProductName.Votes) {
 		if v.Name > 0 {
 			switch level {
 			case 0:
@@ -54,8 +76,11 @@ func VoteOnProduct(v Vote, username string, conn *mongo.Database) {
 			}
 			p.ProductName.Users = append(p.ProductName.Users, UserVote{username, false})
 		}
+		if voteComplete(p.ProductName.Votes) {
+			confirmed(p.ProductName.Users, upWon(p.ProductName.Votes), conn)
+		}
 	}
-	if canVote(p.Ingredients.Users, username) {
+	if canVote(p.Ingredients.Users, username) && !voteComplete(p.Ingredients.Votes) {
 
 		if v.Ingredients > 0 {
 			switch level {
@@ -74,8 +99,11 @@ func VoteOnProduct(v Vote, username string, conn *mongo.Database) {
 			}
 			p.Ingredients.Users = append(p.Ingredients.Users, UserVote{username, false})
 		}
+		if voteComplete(p.Ingredients.Votes) {
+			confirmed(p.Ingredients.Users, upWon(p.Ingredients.Votes), conn)
+		}
 	}
-	if canVote(p.Nutrition.Users, username) {
+	if canVote(p.Nutrition.Users, username) && !voteComplete(p.Nutrition.Votes) {
 
 		if v.Nutrition > 0 {
 			switch level {
@@ -92,8 +120,12 @@ func VoteOnProduct(v Vote, username string, conn *mongo.Database) {
 			default:
 				p.Nutrition.Votes.DownHigh++
 			}
+			p.Nutrition.Users = append(p.Nutrition.Users, UserVote{username, false})
 		}
-		p.Nutrition.Users = append(p.Nutrition.Users, UserVote{username, false})
+
+		if voteComplete(p.Nutrition.Votes) {
+			confirmed(p.Nutrition.Users, upWon(p.Nutrition.Votes), conn)
+		}
 	}
 	collection := conn.Collection("products")
 	filter := bson.M{"_id": p.ID}
