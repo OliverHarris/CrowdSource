@@ -33,6 +33,20 @@ func canVote(v []UserVote, user string) bool {
 	return true
 }
 
+func Trust(v PerVote) (int, int) {
+	//Max the low can get is 50.
+	up := v.UpHigh*20 + v.UpLow*10
+	down := v.DownHigh*20 + v.DownLow*10
+	if up > 100 {
+		up = 100
+	}
+	if down > 100 {
+		down = 100
+	}
+
+	return up, down
+}
+
 func confirmed(users []UserVote, up bool, conn *mongo.Database) {
 	for _, u := range users {
 		if u.Up == up {

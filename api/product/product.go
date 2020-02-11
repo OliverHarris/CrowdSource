@@ -26,7 +26,7 @@ type Product struct {
 type pName struct {
 	Name    string
 	Votes   PerVote
-	Users   []UserVote
+	Users   []UserVote `json:"-"`
 	Changes []pName
 	Stamp   int64
 	Vote    bool
@@ -35,7 +35,7 @@ type pIng struct {
 	Ingredients []string
 	Votes       PerVote
 	Changes     []pIng
-	Users       []UserVote
+	Users       []UserVote `json:"-"`
 	Stamp       int64
 	Vote        bool
 }
@@ -46,16 +46,18 @@ type pNutrition struct {
 	Recommended string
 	Votes       PerVote
 	Changes     []pNutrition
-	Users       []UserVote
+	Users       []UserVote `json:"-"`
 	Stamp       int64
 	Vote        bool
 }
 
 type PerVote struct {
-	UpHigh   int
-	UpLow    int
-	DownHigh int
-	DownLow  int
+	UpHigh    int `json:"-"`
+	UpLow     int `json:"-"`
+	DownHigh  int `json:"-"`
+	DownLow   int `json:"-"`
+	TrustUp   int
+	TrustDown int
 }
 
 type UserVote struct {
@@ -76,8 +78,12 @@ func GetProductInfo(barcode string, username string, conn *mongo.Database) Produ
 		finalProduct.Ingredients.Vote = canVote(finalProduct.Ingredients.Users, username)
 		finalProduct.ProductName.Vote = canVote(finalProduct.ProductName.Users, username)
 		finalProduct.Nutrition.Vote = canVote(finalProduct.Nutrition.Users, username)
-
 	}
+
+	finalProduct.Ingredients.Votes.TrustUp, finalProduct.Ingredients.Votes.TrustDown = Trust(finalProduct.Ingredients.Votes)
+	finalProduct.ProductName.Votes.TrustUp, finalProduct.ProductName.Votes.TrustDown = Trust(finalProduct.ProductName.Votes)
+	finalProduct.Nutrition.Votes.TrustUp, finalProduct.Nutrition.Votes.TrustDown = Trust(finalProduct.Nutrition.Votes)
+
 	return finalProduct
 }
 
