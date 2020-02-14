@@ -26,7 +26,7 @@ type Product struct {
 type pName struct {
 	Name    string
 	Votes   PerVote
-	Users   []UserVote `json:"-"`
+	Users   []UserVote
 	Changes []pName
 	Stamp   int64
 	Vote    bool
@@ -65,7 +65,7 @@ type UserVote struct {
 	Up   bool
 }
 
-func GetProductInfo(barcode string, username string, conn *mongo.Database) Product {
+func GetProductInfo(barcode string, username string, conn *mongo.Database) *Product {
 	collection := conn.Collection("products")
 	filter := bson.M{"_id": barcode}
 	doc := collection.FindOne(context.TODO(), filter)
@@ -84,7 +84,7 @@ func GetProductInfo(barcode string, username string, conn *mongo.Database) Produ
 	finalProduct.ProductName.Votes.TrustUp, finalProduct.ProductName.Votes.TrustDown = Trust(finalProduct.ProductName.Votes)
 	finalProduct.Nutrition.Votes.TrustUp, finalProduct.Nutrition.Votes.TrustDown = Trust(finalProduct.Nutrition.Votes)
 
-	return finalProduct
+	return &finalProduct
 }
 
 func AddScanPoint(p Product, username string, conn *mongo.Database) {
@@ -113,6 +113,7 @@ func AlterProduct(p Product, username string, conn *mongo.Database) {
 	prod := GetProductInfo(p.ID, username, conn)
 	sec := time.Now().Unix()
 	level := user.GetLevel(username, conn)
+
 	if len(p.Ingredients.Ingredients) > 0 && !testEq(p.Ingredients.Ingredients, prod.Ingredients.Ingredients) {
 		prod.Ingredients = pIng{Ingredients: p.Ingredients.Ingredients}
 		prod.Ingredients.Stamp = sec
@@ -137,16 +138,32 @@ func AlterProduct(p Product, username string, conn *mongo.Database) {
 		prod.Nutrition.Users = append(prod.Nutrition.Users, UserVote{username, true})
 	}
 	if p.ProductName.Name != "" && p.ProductName.Name != prod.ProductName.Name {
-		prod.ProductName = pName{Name: p.ProductName.Name}
-		prod.ProductName.Stamp = sec
+
+		p.ProductName.Stamp = sec
+		prod.Ingredients.Changes = nil
+		p.ProductName.Changes = append(prod.ProductName.Changes, prod.ProductName)
+		prod.ProductName.Users = nil
+		p.ProductName.Users = append(prod.ProductName.Users, UserVote{username, true})
+		if len(p.ProductName.Changes) > 3 {
+			p.ProductName.Changes = p.ProductName.Changes[1:]
+		}
+		p.ProductName.Votes.DownHigh = 0
+		p.ProductName.Votes.DownLow = 0
 		switch level {
 		case 0:
-			prod.ProductName.Votes.UpLow++
+			p.ProductName.Votes.UpHigh = 0
+			p.ProductName.Votes.UpLow = 1
 		default:
-			prod.ProductName.Votes.UpHigh++
+			p.ProductName.Votes.UpHigh = 1
+			p.ProductName.Votes.UpLow = 0
 		}
-		prod.ProductName.Users = append(prod.ProductName.Users, UserVote{username, true})
+		c := pName{p.ProductName.Name, p.Ingredients.Votes, p.ProductName.Users,
+			p.ProductName.Changes, p.ProductName.Stamp, false}
+
+		prod.ProductName = c
+
 	}
+	log.Printf("Users2.. %v", prod.ProductName.Users)
 	prod.Version = sec
 	//Now insert it into the database
 	collection := conn.Collection("products")

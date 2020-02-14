@@ -19,7 +19,7 @@ func getProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	username := getUsername(r)
-	product.AddScanPoint(p, username, conn)
+	product.AddScanPoint(*p, username, conn)
 	output, _ := json.Marshal(p)
 	w.Write(output)
 
