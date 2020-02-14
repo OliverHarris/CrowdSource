@@ -115,32 +115,58 @@ func AlterProduct(p Product, username string, conn *mongo.Database) {
 	level := user.GetLevel(username, conn)
 
 	if len(p.Ingredients.Ingredients) > 0 && !testEq(p.Ingredients.Ingredients, prod.Ingredients.Ingredients) {
-		prod.Ingredients = pIng{Ingredients: p.Ingredients.Ingredients}
-		prod.Ingredients.Stamp = sec
-
+		p.Ingredients.Stamp = sec
+		prod.Ingredients.Changes = nil
+		p.Ingredients.Changes = append(prod.Ingredients.Changes, prod.Ingredients)
+		prod.Ingredients.Users = nil
+		p.Ingredients.Users = append(prod.Ingredients.Users, UserVote{username, true})
+		if len(p.Ingredients.Changes) > 3 {
+			p.Ingredients.Changes = p.Ingredients.Changes[1:]
+		}
+		p.Ingredients.Votes.DownHigh = 0
+		p.Ingredients.Votes.DownLow = 0
 		switch level {
 		case 0:
-			prod.Ingredients.Votes.UpLow++
+			p.Ingredients.Votes.UpHigh = 0
+			p.Ingredients.Votes.UpLow = 1
 		default:
-			prod.Ingredients.Votes.UpHigh++
+			p.Ingredients.Votes.UpHigh = 1
+			p.Ingredients.Votes.UpLow = 0
 		}
-		prod.Ingredients.Users = append(prod.Ingredients.Users, UserVote{username, true})
+		c := pIng{p.Ingredients.Ingredients, p.Ingredients.Votes,
+			p.Ingredients.Changes, p.Ingredients.Users, p.Ingredients.Stamp, false}
+
+		prod.Ingredients = c
 	}
 	if len(p.Nutrition.Nutrition) > 0 && reflect.DeepEqual(p.Nutrition.Nutrition, prod.Nutrition.Nutrition) {
-		prod.Nutrition = pNutrition{Nutrition: p.Nutrition.Nutrition}
-		prod.Nutrition.Stamp = sec
+		p.Nutrition.Stamp = sec
+		prod.Nutrition.Changes = nil
+		p.Nutrition.Changes = append(prod.Nutrition.Changes, prod.Nutrition)
+		prod.Nutrition.Users = nil
+		p.Nutrition.Users = append(prod.Nutrition.Users, UserVote{username, true})
+		if len(p.Nutrition.Changes) > 3 {
+			p.Nutrition.Changes = p.Nutrition.Changes[1:]
+		}
+		p.Nutrition.Votes.DownHigh = 0
+		p.Nutrition.Votes.DownLow = 0
 		switch level {
 		case 0:
-			prod.Nutrition.Votes.UpLow++
+			p.Nutrition.Votes.UpHigh = 0
+			p.Nutrition.Votes.UpLow = 1
 		default:
-			prod.Nutrition.Votes.UpHigh++
+			p.Nutrition.Votes.UpHigh = 1
+			p.Nutrition.Votes.UpLow = 0
 		}
-		prod.Nutrition.Users = append(prod.Nutrition.Users, UserVote{username, true})
+		c := pNutrition{p.Nutrition.Nutrition, p.Nutrition.Weight,
+			p.Nutrition.Recommended, p.Nutrition.Votes,
+			p.Nutrition.Changes, p.Nutrition.Users, p.Nutrition.Stamp, false}
+
+		prod.Nutrition = c
 	}
 	if p.ProductName.Name != "" && p.ProductName.Name != prod.ProductName.Name {
 
 		p.ProductName.Stamp = sec
-		prod.Ingredients.Changes = nil
+		prod.ProductName.Changes = nil
 		p.ProductName.Changes = append(prod.ProductName.Changes, prod.ProductName)
 		prod.ProductName.Users = nil
 		p.ProductName.Users = append(prod.ProductName.Users, UserVote{username, true})
