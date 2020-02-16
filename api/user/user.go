@@ -23,8 +23,11 @@ func GetLevel(username string, conn *mongo.Database) int {
 	doc := collection.FindOne(context.TODO(), filter)
 	var user Point
 	err := doc.Decode(&user)
-	failOnError(err, "Decoding user points")
-
+	if err !=nil {
+		log.Println("User doesnt exist when getting level. Setting to 0")
+		return 0
+	}
+	
 	//Ignore the deny points for now
 	if user.Updates > 5 && user.Scan > 5 {
 		return 2
