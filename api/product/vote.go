@@ -34,9 +34,8 @@ func canVote(v []UserVote, user string) bool {
 }
 
 func Trust(v PerVote) (int, int) {
-	//Max the low can get is 50.
-	up := v.UpHigh*20 + v.UpLow*10
-	down := v.DownHigh*20 + v.DownLow*10
+	up := v.UpHigh*30 + v.UpLow*20
+	down := v.DownHigh*30 + v.DownLow*20
 	if up > 100 {
 		up = 100
 	}
