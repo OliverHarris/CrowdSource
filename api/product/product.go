@@ -26,7 +26,7 @@ type Product struct {
 type pName struct {
 	Name    string
 	Votes   PerVote
-	Users   []UserVote
+	Users   []UserVote `json:"-"`
 	Changes []pName
 	Stamp   int64
 	Vote    bool
