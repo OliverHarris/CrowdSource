@@ -16,6 +16,18 @@ type Settings struct {
 	RecommendedNutrition map[string]float32
 }
 
+type user struct {
+	Points Points
+}
+
+// Points is for the user (inside points.)
+type Points struct {
+	Scan    int
+	Updates int `json:"-"`
+	Deny    int `json:"-"`
+	Trust   int
+}
+
 func getSettings(w http.ResponseWriter, r *http.Request) {
 	collection := conn.Collection("accountInfo")
 	username := getUsername(r)
@@ -41,4 +53,36 @@ func setSettings(w http.ResponseWriter, r *http.Request) {
 	username := getUsername(r)
 	filter := bson.M{"_id": username}
 	collection.FindOneAndReplace(context.TODO(), filter, account, options.FindOneAndReplace().SetUpsert(true))
+}
+
+func getPoints(w http.ResponseWriter, r *http.Request) {
+	collection := conn.Collection("user")
+	username := getUsername(r)
+	filter := bson.M{"_id": username}
+	doc := collection.FindOne(context.TODO(), filter)
+	var user user
+	err := doc.Decode(&user)
+	if err != nil {
+		log.Printf("error %s", err)
+		//No account
+	}
+
+	user.Points.Trust = getLevel(user.Points)
+
+	output, _ := json.Marshal(user.Points)
+	w.Write(output)
+}
+
+//copy from api/user
+func getLevel(user Points) int {
+
+	//Ignore the deny points for now
+	if user.Updates > 5 && user.Scan > 5 {
+		return 2
+	} else if user.Scan > 5 {
+		return 1
+	} else {
+		return 0
+	}
+
 }
