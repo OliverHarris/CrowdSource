@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -21,4 +22,10 @@ func configDB(ctx context.Context) (*mongo.Database, error) {
 	}
 	todoDB := client.Database("pro")
 	return todoDB, nil
+}
+
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
 }
