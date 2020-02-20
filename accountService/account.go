@@ -10,62 +10,35 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type user struct {
-	Username      string `bson:"_id"`
-	Points        int
-	PointsHistory []histpoints
-}
-type histpoints struct {
-	Item      string
-	Version   int
-	Type      string
-	Points    int
-	Confirmed bool
-	Timestamp int64
+//Settings is the users account settings
+type Settings struct {
+	Allergies            []string
+	RecommendedNutrition map[string]float32
 }
 
-func getAccountDB(username string) (user, error) {
-	var account user
-	collection := conn.Collection("user")
+func getSettings(w http.ResponseWriter, r *http.Request) {
+	collection := conn.Collection("accountInfo")
+	username := getUsername(r)
 	filter := bson.M{"_id": username}
 	doc := collection.FindOne(context.TODO(), filter)
+	var account Settings
 	err := doc.Decode(&account)
-	return account, err
-}
-
-func getAccount(w http.ResponseWriter, r *http.Request) {
-	account, err := getAccountDB(getUsername(r))
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
+		log.Printf("error %s", err)
+		//Account not found. This is fine, return an empty account
 	}
+
 	output, _ := json.Marshal(account)
 	w.Write(output)
-
 }
 
-func getBoard(w http.ResponseWriter, r *http.Request) {
-	scores := getTopScores(5)
-	output, _ := json.Marshal(scores)
-	w.Write(output)
-}
-
-type score struct {
-	Username string `bson:"_id"`
-	Points   int
-}
-
-func getTopScores(numberToGet int) []score {
-	collection := conn.Collection("user")
-	filter := bson.M{} //Could find with "public" tag
-	findOptions := options.Find()
-	findOptions.SetLimit(int64(numberToGet))
-	findOptions.SetSort(bson.D{{"points", -1}})
-	docs, err := collection.Find(context.TODO(), filter, findOptions)
-	if err != nil {
-		log.Fatal(err)
-	}
-	var scores []score
-	docs.All(context.TODO(), &scores)
-	return scores
+func setSettings(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var account Settings
+	err := decoder.Decode(&account)
+	failOnError(err, "Failed to decode product")
+	collection := conn.Collection("accountInfo")
+	username := getUsername(r)
+	filter := bson.M{"_id": username}
+	collection.FindOneAndReplace(context.TODO(), filter, account, options.FindOneAndReplace().SetUpsert(true))
 }
