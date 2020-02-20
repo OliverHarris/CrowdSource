@@ -10,6 +10,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type user struct {
+	Points Point
+}
+
 // Point is for the user (inside points.)
 type Point struct {
 	Scan    int
@@ -21,17 +25,17 @@ func GetLevel(username string, conn *mongo.Database) int {
 	collection := conn.Collection("user")
 	filter := bson.M{"_id": username}
 	doc := collection.FindOne(context.TODO(), filter)
-	var user Point
+	var user user
 	err := doc.Decode(&user)
-	if err !=nil {
+	if err != nil {
 		log.Println("User doesnt exist when getting level. Setting to 0")
 		return 0
 	}
-	
+
 	//Ignore the deny points for now
-	if user.Updates > 5 && user.Scan > 5 {
+	if user.Points.Updates > 5 && user.Points.Scan > 5 {
 		return 2
-	} else if user.Scan > 5 {
+	} else if user.Points.Scan > 5 {
 		return 1
 	} else {
 		return 0
