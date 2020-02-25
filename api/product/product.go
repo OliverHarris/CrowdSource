@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"reflect"
+	"strconv"
 	"time"
 
 	"../user"
@@ -163,7 +164,7 @@ func AlterProduct(p Product, username string, conn *mongo.Database) {
 			p.Nutrition.Recommended, p.Nutrition.Votes,
 			p.Nutrition.Changes, p.Nutrition.Users, p.Nutrition.Stamp, false}
 
-		prod.Nutrition = c
+		prod.Nutrition = calcRecommended(c)
 	}
 	if p.ProductName.Name != "" && p.ProductName.Name != prod.ProductName.Name {
 
@@ -216,4 +217,24 @@ func testEq(a, b []string) bool {
 	}
 
 	return true
+}
+
+func calcRecommended(info pNutrition) pNutrition {
+	weight, _ := strconv.ParseFloat(info.Weight, 32)
+	recommended, _ := strconv.ParseFloat(info.Recommended, 32)
+	if weight < 1 && recommended < 1 {
+		return info
+	}
+
+	for k, v := range info.Nutrition {
+		//v[0] is the value for the total
+		oneGram := v[0] / float32(weight)
+		recommendedGram := oneGram * float32(recommended)
+		//Set the recommended value
+		temp := info.Nutrition[k]
+		temp[1] = recommendedGram
+		info.Nutrition[k] = temp
+	}
+
+	return info
 }
