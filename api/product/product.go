@@ -138,7 +138,9 @@ func AlterProduct(p Product, username string, conn *mongo.Database) {
 
 		prod.Ingredients = c
 	}
-	if len(p.Nutrition.Nutrition) > 0 && reflect.DeepEqual(p.Nutrition.Nutrition, prod.Nutrition.Nutrition) {
+	if reflect.DeepEqual(p.Nutrition.Nutrition, prod.Nutrition.Nutrition) ||
+		p.Nutrition.Recommended != prod.Nutrition.Recommended ||
+		p.Nutrition.Weight != prod.Nutrition.Weight {
 		p.Nutrition.Stamp = sec
 		prod.Nutrition.Changes = nil
 		p.Nutrition.Changes = append(prod.Nutrition.Changes, prod.Nutrition)
