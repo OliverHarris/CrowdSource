@@ -187,7 +187,8 @@ func AlterProduct(p Product, username string, conn *mongo.Database) {
 			p.ProductName.Votes.UpHigh = 1
 			p.ProductName.Votes.UpLow = 0
 		}
-		c := pName{strings.Title(p.ProductName.Name), p.Ingredients.Votes, p.ProductName.Users,
+		p.ProductName.Name = strings.Title(p.ProductName.Name)
+		c := pName{p.ProductName.Name, p.ProductName.Votes, p.ProductName.Users,
 			p.ProductName.Changes, p.ProductName.Stamp, false}
 
 		prod.ProductName = c
