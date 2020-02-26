@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
+	"gopkg.in/square/go-jose.v2/jwt"
 )
 
 var conn *mongo.Database
@@ -41,31 +41,32 @@ func main() {
 	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
 }
 
-//Auth0
-type customClaims struct {
-	Scope string `json:"scope"`
-	jwt.StandardClaims
+type CustomClaims struct {
+	*jwt.Claims
+	// additional claims apart from standard claims
+	//We don't have any extra
+	extra map[string]interface{}
 }
 
 func getUsername(r *http.Request) string {
 	authHeaderParts := strings.Split(r.Header.Get("Authorization"), " ")
-	log.Printf("Length %v", len(authHeaderParts))
-
-	//when auth0 is turned off, all users are "test"
-	if len(authHeaderParts) < 2 && debug {
+	log.Printf("Length %v %v", len(authHeaderParts), authHeaderParts)
+	if len(authHeaderParts) < 2 {
 		log.Printf("Token not found. Giving test username")
 		return "test"
 	}
 	tokenString := authHeaderParts[1]
-	token, err := jwt.ParseWithClaims(tokenString, &customClaims{}, nil)
-	if err != nil && debug {
-		log.Printf("Token not found. Giving test username (error) %e", err)
-		return "test"
-	} else if err != nil {
-		failOnError(err, "Token not found")
-	}
-	claims, _ := token.Claims.(*customClaims)
-	fmt.Printf("(user) %s ", claims.Subject)
+	// token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, nil)
+	// if err != nil {
+	// 	log.Printf("Token not found. Giving test username (error) %e", err)
+	// 	return "test"
+	// }
+	// claims, _ := token.Claims.(*CustomClaims)#
+	var claims CustomClaims
+	// decode JWT token without verifying the signature
+	token, _ := jwt.ParseSigned(tokenString)
+	_ = token.UnsafeClaimsWithoutVerification(&claims)
+	fmt.Printf("(user) %v ", claims.Subject)
 	return claims.Subject
 
 }
