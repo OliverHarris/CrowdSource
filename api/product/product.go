@@ -3,6 +3,7 @@ package product
 import (
 	"context"
 	"log"
+	"math"
 	"reflect"
 	"strconv"
 	"strings"
@@ -231,10 +232,10 @@ func calcRecommended(info pNutrition) pNutrition {
 	for k, v := range info.Nutrition {
 		//v[0] is the value for the total
 		oneGram := v[0] / float32(weight)
-		recommendedGram := oneGram * float32(recommended)
+		recommendedGram := math.Round(float64(oneGram) * float64(recommended))
 		//Set the recommended value
 		temp := info.Nutrition[k]
-		temp[1] = recommendedGram
+		temp[1] = float32(recommendedGram)
 		info.Nutrition[k] = temp
 	}
 
