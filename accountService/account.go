@@ -40,6 +40,18 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 		//Account not found. This is fine, return an empty account
 	}
 
+	//if the RDA is empty, we can set some defaults
+	if len(account.RecommendedNutrition) == 0 {
+		account.RecommendedNutrition = make(map[string]float32)
+		account.RecommendedNutrition["Energy"] = 2000 // Energy is kcal
+		account.RecommendedNutrition["Fat"] = 70
+		account.RecommendedNutrition["Saturates"] = 20
+		account.RecommendedNutrition["Carbohydrate"] = 260
+		account.RecommendedNutrition["Sugar"] = 90
+		account.RecommendedNutrition["Protein"] = 50
+		account.RecommendedNutrition["Salt"] = 6
+	}
+
 	output, _ := json.Marshal(account)
 	w.Write(output)
 }
