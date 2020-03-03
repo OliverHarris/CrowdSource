@@ -36,7 +36,7 @@ func main() {
 
 	router.HandleFunc("/product/{barcode}", getProduct).Methods("GET")
 	router.HandleFunc("/product/{barcode}", changeProduct).Methods("POST")
-	router.HandleFunc("/vote", productVote).Methods("POST")
+	router.HandleFunc("/vote/{barcode}", productVote).Methods("POST")
 	// router.HandleFunc("/vote/{barcode}", voteOnProduct).Methods("POST")
 	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
 }
@@ -50,7 +50,7 @@ type CustomClaims struct {
 
 func getUsername(r *http.Request) string {
 	authHeaderParts := strings.Split(r.Header.Get("Authorization"), " ")
-	log.Printf("Length %v %v", len(authHeaderParts), authHeaderParts)
+
 	if len(authHeaderParts) < 2 {
 		log.Printf("Token not found. Giving test username")
 		return "test"
@@ -66,7 +66,7 @@ func getUsername(r *http.Request) string {
 	// decode JWT token without verifying the signature
 	token, _ := jwt.ParseSigned(tokenString)
 	_ = token.UnsafeClaimsWithoutVerification(&claims)
-	fmt.Printf("(user) %v ", claims.Subject)
+
 	return claims.Subject
 
 }

@@ -44,7 +44,7 @@ type pIng struct {
 }
 
 type pNutrition struct {
-	Nutrition   map[string][2]float32
+	Nutrition   map[string][2]float64
 	Weight      string
 	Recommended string
 	Votes       PerVote
@@ -232,11 +232,11 @@ func calcRecommended(info pNutrition) pNutrition {
 
 	for k, v := range info.Nutrition {
 		//v[0] is the value for the total
-		oneGram := v[0] / float32(weight)
+		oneGram := v[0] / (weight)
 		recommendedGram := math.Round(float64(oneGram) * float64(recommended))
 		//Set the recommended value
 		temp := info.Nutrition[k]
-		temp[1] = float32(recommendedGram)
+		temp[1] = (recommendedGram)
 		info.Nutrition[k] = temp
 	}
 
