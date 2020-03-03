@@ -111,7 +111,7 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
-func AlterProduct(p Product, username string, conn *mongo.Database) {
+func AlterProduct(p Product, username string, conn *mongo.Database) Product {
 	//decide how many points they should get
 	prod := GetProductInfo(p.ID, username, conn)
 	sec := time.Now().Unix()
@@ -202,6 +202,7 @@ func AlterProduct(p Product, username string, conn *mongo.Database) {
 	filter := bson.M{"_id": p.ID}
 	collection.FindOneAndReplace(context.TODO(), filter, p, options.FindOneAndReplace().SetUpsert(true))
 	//collection.InsertOne(context.TODO(), p)
+	return p
 }
 
 func testEq(a, b []string) bool {

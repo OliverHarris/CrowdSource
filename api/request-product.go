@@ -31,6 +31,8 @@ func changeProduct(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&p)
 	failOnError(err, "Failed to decode product")
 	product.AlterProduct(p, getUsername(r), conn)
+	output, _ := json.Marshal(p)
+	w.Write(output)
 }
 
 func productVote(w http.ResponseWriter, r *http.Request) {
