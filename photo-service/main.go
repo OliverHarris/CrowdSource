@@ -31,7 +31,7 @@ func main() {
 	//To allow other sources, enable cors
 	//router.Use(cors)
 
-	router.HandleFunc("/product/{barcode}", updateProduct).Methods("POST")
+	router.HandleFunc("/ingredients", readIng).Methods("GET")
 	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
 }
 
