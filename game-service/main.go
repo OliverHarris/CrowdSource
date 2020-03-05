@@ -31,6 +31,8 @@ func main() {
 	//To allow other sources, enable cors
 	//router.Use(cors)
 
+	sessions = make(map[string]string)
+
 	router.HandleFunc("/session", getQuestion).Methods("GET")
 	router.HandleFunc("/play", getQuestion).Methods("GET")
 	router.HandleFunc("/end", getQuestion).Methods("GET")
@@ -83,4 +85,10 @@ func getUsername(r *http.Request) string {
 
 	return claims.Subject
 
+}
+
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
 }
