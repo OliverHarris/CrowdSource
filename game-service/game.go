@@ -70,6 +70,28 @@ func end(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func games(w http.ResponseWriter, r *http.Request) {
+	collection := conn.Collection("game")
+	filter := bson.M{"user": getUsername(r)}
+	cur, err := collection.Find(context.TODO(), filter)
+	failOnError(err, "Failed to collect many")
+	var results []*game
+	for cur.Next(context.TODO()) {
+
+		// create a value into which the single document can be decoded
+		var elem game
+		err := cur.Decode(&elem)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		results = append(results, &elem)
+	}
+
+	output, _ := json.Marshal(results)
+	w.Write(output)
+}
+
 var sessions map[string]string
 
 func playOne(w http.ResponseWriter, r *http.Request) {
