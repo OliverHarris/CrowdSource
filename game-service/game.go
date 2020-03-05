@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"strings"
 	"time"
@@ -146,5 +146,38 @@ func incPoint(session string) {
 	}
 	collection := conn.Collection("game")
 	collection.UpdateOne(context.TODO(), filter, update)
+
+}
+
+type question struct {
+	Question string
+}
+
+func getQuestion(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var p play
+	err := decoder.Decode(&p)
+	failOnError(err, "Failed to decode play")
+	rand.Seed(time.Now().UnixNano())
+	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	q := fmt.Sprintf("Find a product that starts with %s", chars[rand.Intn(1)])
+	var qz question
+	qz.Question = q
+
+	//Add the question to the session
+	sessions[p.Session] = q
+
+	//Add question to database
+	filter := bson.D{{"_id", p.Session}}
+
+	update := bson.D{
+		{"$push", bson.D{
+			{"questions", q},
+		}},
+	}
+	collection := conn.Collection("game")
+	collection.UpdateOne(context.TODO(), filter, update)
+	output, _ := json.Marshal(qz)
+	w.Write(output)
 
 }
