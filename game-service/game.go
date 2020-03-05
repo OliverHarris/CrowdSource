@@ -63,19 +63,17 @@ func generateSession(w http.ResponseWriter, r *http.Request) {
 }
 
 func end(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	var p play
-	err := decoder.Decode(&p)
-	failOnError(err, "Failed to decode play")
+	params := mux.Vars(r)
+	ses := params["session"]
 
-	delete(sessions, p.Session)
+	delete(sessions, ses)
 
-	filter := bson.D{{"_id", p.Session}}
-
-	update := bson.M{"active": false}
+	filter := bson.M{"_id": ses}
+	log.Printf("Session %s", ses)
+	update := bson.M{"$set": bson.M{"active": false}}
 	collection := conn.Collection("game")
-	collection.UpdateOne(context.TODO(), filter, update)
-
+	_, err := collection.UpdateOne(context.TODO(), filter, update)
+	failOnError(err, "Failed to end")
 }
 
 func games(w http.ResponseWriter, r *http.Request) {
@@ -128,8 +126,10 @@ func playOne(w http.ResponseWriter, r *http.Request) {
 		re.Found = true
 		correct := sessions[p.Session]
 		correct = correct[len(correct)-1:]
-		if strings.ToLower(prod.ProductName.Name) == strings.ToLower(correct) {
+		log.Printf("Name %s , Correct %s", strings.ToLower(prod.ProductName.Name[0:1]), strings.ToLower(correct))
+		if strings.ToLower(prod.ProductName.Name[0:1]) == strings.ToLower(correct) {
 			re.Correct = true
+			incPoint(p.Session)
 		} else {
 			re.Correct = false
 		}
@@ -138,7 +138,7 @@ func playOne(w http.ResponseWriter, r *http.Request) {
 	}
 
 	delete(sessions, p.Session)
-	incPoint(p.Session)
+
 	output, _ := json.Marshal(re)
 	w.Write(output)
 }

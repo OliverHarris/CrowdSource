@@ -35,7 +35,7 @@ func main() {
 
 	router.HandleFunc("/session", generateSession).Methods("GET")
 	router.HandleFunc("/play", playOne).Methods("POST")
-	router.HandleFunc("/end", end).Methods("DELETE")
+	router.HandleFunc("/end/{session}", end).Methods("DELETE")
 	router.HandleFunc("/games", games).Methods("GET")
 	router.HandleFunc("/question/{session}", getQuestion).Methods("GET")
 	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
