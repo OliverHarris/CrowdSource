@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -17,6 +18,7 @@ type game struct {
 	Points    int
 	Active    bool
 	Questions []string
+	Stamp     int64
 }
 
 type play struct {
@@ -48,6 +50,7 @@ func generateSession(w http.ResponseWriter, r *http.Request) {
 		//Create a new token
 		runningGame.Session = tokenGenerator()
 		runningGame.Active = true
+		runningGame.Stamp = time.Now().Unix()
 		collection.InsertOne(context.TODO(), runningGame)
 	}
 	output, _ := json.Marshal(runningGame)
