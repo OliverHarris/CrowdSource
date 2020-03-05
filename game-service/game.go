@@ -54,6 +54,22 @@ func generateSession(w http.ResponseWriter, r *http.Request) {
 	w.Write(output)
 }
 
+func end(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var p play
+	err := decoder.Decode(&p)
+	failOnError(err, "Failed to decode play")
+
+	delete(sessions, p.Session)
+
+	filter := bson.D{{"_id", p.Session}}
+
+	update := bson.M{"active": false}
+	collection := conn.Collection("game")
+	collection.UpdateOne(context.TODO(), filter, update)
+
+}
+
 var sessions map[string]string
 
 func playOne(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +77,7 @@ func playOne(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var p play
 	err := decoder.Decode(&p)
-	failOnError(err, "Failed to decode product")
+	failOnError(err, "Failed to decode play")
 
 	var re playResult
 	if _, ok := sessions[p.Session]; !ok {
