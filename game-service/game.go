@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -17,6 +18,7 @@ type game struct {
 	Session   string `bson:"_id"`
 	Points    int
 	Active    bool
+	User      string
 	Questions []string
 	Stamp     int64
 }
@@ -30,6 +32,7 @@ type playResult struct {
 	Correct bool
 	Found   bool
 	Error   string
+	Product Product
 }
 
 func tokenGenerator() string {
@@ -51,6 +54,8 @@ func generateSession(w http.ResponseWriter, r *http.Request) {
 		runningGame.Session = tokenGenerator()
 		runningGame.Active = true
 		runningGame.Stamp = time.Now().Unix()
+		runningGame.User = getUsername(r)
+		runningGame.Questions = []string{}
 		collection.InsertOne(context.TODO(), runningGame)
 	}
 	output, _ := json.Marshal(runningGame)
@@ -128,6 +133,8 @@ func playOne(w http.ResponseWriter, r *http.Request) {
 		} else {
 			re.Correct = false
 		}
+
+		re.Product = *prod
 	}
 
 	delete(sessions, p.Session)
@@ -154,21 +161,21 @@ type question struct {
 }
 
 func getQuestion(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	var p play
-	err := decoder.Decode(&p)
-	failOnError(err, "Failed to decode play")
+	params := mux.Vars(r)
+	ses := params["session"]
+
 	rand.Seed(time.Now().UnixNano())
-	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	q := fmt.Sprintf("Find a product that starts with %s", chars[rand.Intn(1)])
+	cst := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	q := fmt.Sprintf("Find a product that starts with %c", cst[rand.Intn(len(cst))])
 	var qz question
 	qz.Question = q
 
 	//Add the question to the session
-	sessions[p.Session] = q
+	sessions[ses] = q
+	log.Printf("Session.. %s", ses)
 
 	//Add question to database
-	filter := bson.D{{"_id", p.Session}}
+	filter := bson.D{{"_id", ses}}
 
 	update := bson.D{
 		{"$push", bson.D{
@@ -176,7 +183,8 @@ func getQuestion(w http.ResponseWriter, r *http.Request) {
 		}},
 	}
 	collection := conn.Collection("game")
-	collection.UpdateOne(context.TODO(), filter, update)
+	_, err := collection.UpdateOne(context.TODO(), filter, update)
+	failOnError(err, "Failed to update")
 	output, _ := json.Marshal(qz)
 	w.Write(output)
 
