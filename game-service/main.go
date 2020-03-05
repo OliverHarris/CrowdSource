@@ -33,10 +33,10 @@ func main() {
 
 	sessions = make(map[string]string)
 
-	router.HandleFunc("/session", getQuestion).Methods("GET")
-	router.HandleFunc("/play", getQuestion).Methods("GET")
-	router.HandleFunc("/end", getQuestion).Methods("GET")
-	router.HandleFunc("/games", getQuestion).Methods("GET")
+	router.HandleFunc("/session", generateSession).Methods("GET")
+	router.HandleFunc("/play", playOne).Methods("POST")
+	router.HandleFunc("/end", end).Methods("DELETE")
+	router.HandleFunc("/games", games).Methods("GET")
 	router.HandleFunc("/question", getQuestion).Methods("GET")
 	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
 }
