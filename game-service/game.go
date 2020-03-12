@@ -21,6 +21,7 @@ type game struct {
 	User      string
 	Questions []string
 	Stamp     int64
+	EndStamp  int64
 }
 
 type play struct {
@@ -70,7 +71,8 @@ func end(w http.ResponseWriter, r *http.Request) {
 
 	filter := bson.M{"_id": ses}
 	log.Printf("Session %s", ses)
-	update := bson.M{"$set": bson.M{"active": false}}
+	st := time.Now().Unix()
+	update := bson.M{"$set": bson.M{"active": false, "endStamp": st}}
 	collection := conn.Collection("game")
 	_, err := collection.UpdateOne(context.TODO(), filter, update)
 	failOnError(err, "Failed to end")
