@@ -19,7 +19,8 @@ type productImg struct {
 }
 
 type productNutrition struct {
-	Nutrition string `bson:"ingredients"`
+	Nutrition  string `bson:"ingredients"`
+	Correction map[string]float64
 }
 
 func clearString(st string) []string {
@@ -84,9 +85,9 @@ func readIng(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func decodeNut(temptext string) string {
+func decodeNut(temptext string) map[string]float64 {
 	st := strings.ToLower(temptext)
-	total := ""
+	total := make(map[string]float64)
 	//break up the lines
 	for _, line := range strings.Split(strings.TrimSuffix(st, "\n"), "\n") {
 		log.Printf("Current line is %s", line)
@@ -142,10 +143,7 @@ func decodeNut(temptext string) string {
 				continue
 			}
 		}
-
-		log.Printf("p1 and p2 %s %s", p1, p2)
-		total = fmt.Sprintf("%s%s-%s\n", total, p1, p2)
-
+		total[p1], _ = strconv.ParseFloat(p2, 64)
 		//fmt.Println(line)
 	}
 
@@ -164,8 +162,8 @@ func readNutText(p productNutrition) productNutrition {
 	text, _ := client.Text()
 
 	text2 := decodeNut(text)
-
-	p.Nutrition = text2
+	p.Nutrition = ""
+	p.Correction = text2
 	return p
 
 }
