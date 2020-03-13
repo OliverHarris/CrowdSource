@@ -32,6 +32,7 @@ func main() {
 	//router.Use(cors)
 
 	router.HandleFunc("/ingredients", readIng).Methods("POST")
+	router.HandleFunc("/nutrition", readNutrition).Methods("POST")
 	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
 }
 
