@@ -52,6 +52,7 @@ func confirmed(users []UserVote, up bool, conn *mongo.Database) {
 			user.PointsForUpdate(u.User, conn)
 		} else {
 			user.PointsForDeny(u.User, conn)
+
 		}
 	}
 }
@@ -91,6 +92,23 @@ func VoteOnProduct(v Vote, username string, conn *mongo.Database) {
 		}
 		if voteComplete(p.ProductName.Votes) {
 			confirmed(p.ProductName.Users, upWon(p.ProductName.Votes), conn)
+
+			if !upWon(p.ProductName.Votes) {
+				//Revert
+				old := p.ProductName
+				if len(p.ProductName.Changes) > 0 {
+					//We can swap
+					cur := p.ProductName.Changes[len(p.ProductName.Changes)-1]
+					p.ProductName = cur
+					p.ProductName.Changes = old.Changes
+					old.Changes = nil
+				} else {
+					//remove this
+					p.ProductName = pName{}
+
+				}
+			}
+
 		}
 	}
 	if canVote(p.Ingredients.Users, username) && !voteComplete(p.Ingredients.Votes) {
@@ -114,6 +132,21 @@ func VoteOnProduct(v Vote, username string, conn *mongo.Database) {
 		}
 		if voteComplete(p.Ingredients.Votes) {
 			confirmed(p.Ingredients.Users, upWon(p.Ingredients.Votes), conn)
+			if !upWon(p.Ingredients.Votes) {
+				//Revert
+				old := p.Ingredients
+				if len(p.Ingredients.Changes) > 0 {
+					//We can swap
+					cur := p.Ingredients.Changes[len(p.Ingredients.Changes)-1]
+					p.Ingredients = cur
+					p.Ingredients.Changes = old.Changes
+					old.Changes = nil
+				} else {
+					//remove this
+					p.Ingredients = pIng{}
+
+				}
+			}
 		}
 	}
 	if canVote(p.Nutrition.Users, username) && !voteComplete(p.Nutrition.Votes) {
@@ -138,6 +171,21 @@ func VoteOnProduct(v Vote, username string, conn *mongo.Database) {
 
 		if voteComplete(p.Nutrition.Votes) {
 			confirmed(p.Nutrition.Users, upWon(p.Nutrition.Votes), conn)
+			if !upWon(p.Nutrition.Votes) {
+				//Revert
+				old := p.Nutrition
+				if len(p.Nutrition.Changes) > 0 {
+					//We can swap
+					cur := p.Nutrition.Changes[len(p.Nutrition.Changes)-1]
+					p.Nutrition = cur
+					p.Nutrition.Changes = old.Changes
+					old.Changes = nil
+				} else {
+					//remove this
+					p.Nutrition = pNutrition{}
+
+				}
+			}
 		}
 	}
 	collection := conn.Collection("products")
