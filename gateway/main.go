@@ -47,12 +47,14 @@ func main() {
 			aud := os.Getenv("AUTH0_AUDIENCE")
 			checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
 			if !checkAud {
+				fmt.Println("aud failed")
 				return token, errors.New("Invalid audience.")
 			}
 			// Verify 'iss' claim
 			iss := "https://" + os.Getenv("AUTH0_DOMAIN") + "/"
 			checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
 			if !checkIss {
+				fmt.Println("issue failed")
 				return token, errors.New("Invalid issuer.")
 			}
 
@@ -68,7 +70,7 @@ func main() {
 	})
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedOrigins:   []string{"http://nginx:8050"},
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Authorization"},
 	})
@@ -91,6 +93,7 @@ func main() {
 			token := authHeaderParts[1]
 			doStuff(token)
 			message := "Hello from a private endpoint! You need to be authenticated to see this."
+			log.Printf("%s", message)
 			responseJSON(message, w, http.StatusOK)
 		}))))
 
@@ -117,7 +120,7 @@ func main() {
 
 	handler := c.Handler(r)
 	http.Handle("/", r)
-	fmt.Println("Listening on http://localhost:80")
+	fmt.Println("Listening on http://localhost v2:80")
 	http.ListenAndServe("0.0.0.0:80", handler)
 }
 
@@ -134,6 +137,7 @@ func doStuff(tokenString string) {
 
 }
 func checkScope(scope string, tokenString string) bool {
+	fmt.Println("checking scope")
 	token, _ := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		cert, err := getPemCert(token)
 		if err != nil {
@@ -159,6 +163,7 @@ func checkScope(scope string, tokenString string) bool {
 }
 
 func getPemCert(token *jwt.Token) (string, error) {
+	fmt.Println("cert")
 	cert := ""
 	resp, err := http.Get("https://" + os.Getenv("AUTH0_DOMAIN") + "/.well-known/jwks.json")
 

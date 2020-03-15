@@ -20,3 +20,5 @@ services:
   
     gateway:
       image: gateway:latest
+      ports:
+        - 80:80

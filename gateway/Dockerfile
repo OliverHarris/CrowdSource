@@ -1,11 +1,11 @@
 FROM golang:1.8-alpine3.6
-
+WORKDIR /go/src
 # install git
 RUN apk --update add \
 	git openssl \
 	&& rm /var/cache/apk/*
 
-WORKDIR /go/src
+
 
 ADD . /go/src
 
