@@ -22,3 +22,12 @@ services:
       image: gateway:latest
       ports:
         - 80:80
+    
+    accountservice:
+      image: accountservice:latest
+    api:
+      image: api:latest
+    gameservice:
+      image: gameservice:latest
+    photoservice:
+      image: photoservice:latest
