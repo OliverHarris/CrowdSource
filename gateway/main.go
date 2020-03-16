@@ -70,7 +70,7 @@ func main() {
 	})
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://nginx:8050"},
+		AllowedOrigins:   []string{"http://nginx"},
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Authorization"},
 	})
