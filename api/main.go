@@ -36,7 +36,7 @@ func main() {
 
 	router.HandleFunc("/product/{barcode}", getProduct).Methods("GET")
 	router.HandleFunc("/product/{barcode}", changeProduct).Methods("POST")
-	router.HandleFunc("/vote/{barcode}", productVote).Methods("POST")
+	router.HandleFunc("/product/vote/{barcode}", productVote).Methods("POST")
 	// router.HandleFunc("/vote/{barcode}", voteOnProduct).Methods("POST")
 	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
 }
