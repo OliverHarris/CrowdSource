@@ -1,11 +1,5 @@
-#####
-# This is a working example of setting up tesseract/gosseract,
-# and also works as an example runtime to use gosseract package.
-# You can just hit `docker run -it --rm otiai10/gosseract`
-# to try and check it out!
-#####
+
 FROM golang:latest
-LABEL maintainer="Hiromu Ochiai <otiai10@gmail.com>"
 
 RUN apt-get update -qq
 
@@ -33,5 +27,3 @@ RUN go get -d
 CMD ["go","run","main.go","p.go","db.go"]
 
 
-# Now, you've got complete environment to play with "gosseract"!
-# For other OS, check https://github.com/otiai10/gosseract/tree/master/test/runtimes
