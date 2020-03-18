@@ -17,6 +17,8 @@ services:
           - 8900:80
         volumes:
           - ./site.conf:/etc/nginx/conf.d/default.conf
+        depends_on:
+          - gateway
   
     gateway:
       image: localhost:5000/gateway:latest    
