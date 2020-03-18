@@ -47,8 +47,9 @@ func main() {
 			aud := os.Getenv("AUTH0_AUDIENCE")
 			checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
 			if !checkAud {
-				fmt.Println("aud failed")
-				return token, errors.New("Invalid audience.")
+				fmt.Println("aud failed, but skipping this")
+				//	return token, errors.New("Invalid audience.")
+				//SKIP AUDIENCE
 			}
 			// Verify 'iss' claim
 			iss := "https://" + os.Getenv("AUTH0_DOMAIN") + "/"
