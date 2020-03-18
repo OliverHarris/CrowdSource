@@ -14,20 +14,17 @@ services:
     nginx:
         image: nginx:latest
         ports:
-          - 80:80
+          - 8900:80
         volumes:
           - ./site.conf:/etc/nginx/conf.d/default.conf
   
     gateway:
-      image: gateway:latest
-      ports:
-        - 8050:80
-    
+      image: localhost:5000/gateway:latest    
     accountservice:
-      image: accountservice:latest
+      image:  localhost:5000/accountservice:latest
     api:
-      image: api:latest
+      image:  localhost:5000/api:latest
     gameservice:
-      image: gameservice:latest
+      image:  localhost:5000/gameservice:latest
     photoservice:
-      image: photoservice:latest
+      image:  localhost:5000/photoservice:latest
