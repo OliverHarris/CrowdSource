@@ -1,3 +1,7 @@
+Feature: Get the account information
+
+    Get allergies and RecommendedNutrition from the user account
+
     Scenario: Get the users account information
         Given The user has set some information
         Then the response should include
