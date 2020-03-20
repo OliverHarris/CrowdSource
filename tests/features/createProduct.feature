@@ -6,10 +6,10 @@ Feature: Create product
         Given the product test001 doesn't exist
         When I request to create a product
         And  I put this information
-            | attribute   | value                     |
-            | productName | test product              |
-            | ingredients | ["Wheat", "Egg", "Sugar"] |
-            | nutrition   | {"Energy":500,"Fibre":0}  |
+            | attribute   | value                    |
+            | productName | test product             |
+            | ingredients | LIST Wheat,Egg,Sugar     |
+            | nutrition   | {"Energy":500,"Fibre":0} |
         Then the response should include
             | attribute   | value                     |
             | productName | test product              |
@@ -20,9 +20,9 @@ Feature: Create product
         Given the product test002 doesn't exist
         When I request to create a product
         And  I put this information
-            | attribute   | value                     |
-            | productName | test product              |
-            | ingredients | ["Wheat", "Egg", "Sugar"] |
+            | attribute   | value                |
+            | productName | test product         |
+            | ingredients | LIST Wheat,Egg,Sugar |
         Then the response should include
             | attribute   | value                     |
             | productName | test product              |

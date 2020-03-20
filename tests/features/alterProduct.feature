@@ -18,9 +18,9 @@ Feature: Changing an existing product
         Given the product test002 does exist
         When I request to create a product
         And  I put this information
-            | attribute   | value                              |
-            | productName | test product                       |
-            | ingredients | ["Wheat", "Egg", "Sugar", "Water"] |
+            | attribute   | value                      |
+            | productName | test product               |
+            | ingredients | LIST Wheat,Egg,Sugar,Water |
         Then the response should include
             | attribute   | value                             |
             | productName | test product                      |
