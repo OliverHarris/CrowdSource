@@ -4,7 +4,8 @@ Feature: Changing an existing product
 
     Scenario: Update product name
         Given the product test002 does exist
-        When I request to create a product with
+        When I request to create a product
+        And  I put this information
             | attribute   | value                |
             | productName | test product changed |
         Then the response should include
@@ -15,7 +16,8 @@ Feature: Changing an existing product
 
     Scenario: Update product name and ingredients
         Given the product test002 does exist
-        When I request to create a product with
+        When I request to create a product
+        And  I put this information
             | attribute   | value                              |
             | productName | test product                       |
             | ingredients | ["Wheat", "Egg", "Sugar", "Water"] |
@@ -27,7 +29,8 @@ Feature: Changing an existing product
 
     Scenario: Update product nutrition
         Given the product test002 does exist
-        When I request to create a product with
+        When I request to create a product
+        And  I put this information
             | attribute | value                    |
             | nutrition | {"Energy":500,"Fibre":0} |
         Then the response should include
