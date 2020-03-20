@@ -4,6 +4,12 @@ Feature: Update account information
 
     Scenario: Add information to the account
         When I put this information
-            | Allergies | ["Wheat"] |
-        And send "POST" request to "/account"
+            """
+            {
+                "allergies": [
+                    "Wheat"
+                ]
+            }
+            """
+        And I send "POST" request to "/account"
         Then the response should be 200

@@ -29,6 +29,7 @@ func changeProduct(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var p product.Product
 	err := decoder.Decode(&p)
+
 	failOnError(err, "Failed to decode product")
 	product.AlterProduct(p, getUsername(r), conn)
 	output, _ := json.Marshal(p)

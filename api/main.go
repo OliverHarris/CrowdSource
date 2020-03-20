@@ -38,6 +38,7 @@ func main() {
 	router.HandleFunc("/product/{barcode}", changeProduct).Methods("POST")
 	router.HandleFunc("/product/vote/{barcode}", productVote).Methods("POST")
 	// router.HandleFunc("/vote/{barcode}", voteOnProduct).Methods("POST")
+	log.Printf("Booted v2")
 	http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("PORT")), router)
 }
 
@@ -73,6 +74,6 @@ func getUsername(r *http.Request) string {
 
 func failOnError(err error, msg string) {
 	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
+		log.Panicf("%s: %s", msg, err)
 	}
 }
